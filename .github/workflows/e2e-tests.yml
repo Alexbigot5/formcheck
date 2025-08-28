@@ -1,0 +1,141 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: smartforms_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install backend dependencies
+      run: cd backend && npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    
+    - name: Setup test database
+      run: |
+        cd backend
+        cp .env.example .env.test
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/smartforms_test" >> .env.test
+        echo "NODE_ENV=test" >> .env.test
+        npm run migrate:test
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartforms_test
+    
+    - name: Build frontend
+      run: npm run build
+      env:
+        VITE_API_BASE_URL: http://localhost:8000
+    
+    - name: Run Playwright tests
+      run: npm run test
+      env:
+        PLAYWRIGHT_BASE_URL: http://localhost:3000
+        PLAYWRIGHT_API_URL: http://localhost:8000
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartforms_test
+        NODE_ENV: test
+    
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+    
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: test-results/
+        retention-days: 30
+
+  smoke-test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: smartforms_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install backend dependencies
+      run: cd backend && npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install chromium --with-deps
+    
+    - name: Setup test database
+      run: |
+        cd backend
+        cp .env.example .env.test
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/smartforms_test" >> .env.test
+        echo "NODE_ENV=test" >> .env.test
+        npm run migrate:test
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartforms_test
+    
+    - name: Run smoke tests only
+      run: npm run test:smoke -- --project=chromium
+      env:
+        PLAYWRIGHT_BASE_URL: http://localhost:3000
+        PLAYWRIGHT_API_URL: http://localhost:8000
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartforms_test
+        NODE_ENV: test
+    
+    - uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: smoke-test-results
+        path: test-results/
+        retention-days: 7

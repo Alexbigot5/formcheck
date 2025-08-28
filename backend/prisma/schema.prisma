@@ -1,0 +1,386 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  EDITOR
+  VIEWER
+
+  @@map("user_role")
+}
+
+enum ScoreBand {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@map("score_band")
+}
+
+enum LeadStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  CLOSED
+
+  @@map("lead_status")
+}
+
+enum ScoringRuleType {
+  IF_THEN
+  WEIGHT
+
+  @@map("scoring_rule_type")
+}
+
+enum IntegrationKind {
+  FORM
+  INBOX
+  INSTAGRAM
+  LINKEDIN
+  WEBHOOK
+  HUBSPOT
+  SALESFORCE
+
+  @@map("integration_kind")
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+
+  @@map("integration_status")
+}
+
+enum MessageDirection {
+  IN
+  OUT
+
+  @@map("message_direction")
+}
+
+enum MessageChannel {
+  EMAIL
+  DM
+  FORM
+  WEBHOOK
+
+  @@map("message_channel")
+}
+
+enum TimelineEventType {
+  FORM_SUBMISSION
+  EMAIL_RECEIVED
+  EMAIL_SENT
+  DM_RECEIVED
+  DM_SENT
+  CRM_SYNC
+  FOLLOW_UP
+  NOTE_ADDED
+  CALL_LOGGED
+  STATUS_CHANGED
+  SCORE_UPDATED
+
+  @@map("timeline_event_type")
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  name          String?
+  passwordHash  String?  @map("password_hash")
+  teamId        String?  @map("team_id") @db.Uuid
+  role          UserRole @default(VIEWER)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  team           Team?    @relation(fields: [teamId], references: [id])
+  forms          Form[]
+  owners         Owner[]
+  scoringConfigs ScoringConfig[]
+  audits         Audit[]
+
+  @@map("profiles") // Align with Supabase auth.users -> profiles pattern
+}
+
+model Team {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  settings   Json?    // Team-specific settings including enrichment config
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users          User[]
+  owners         Owner[]
+  leads          Lead[]
+  forms          Form[]
+  scoringConfigs ScoringConfig[]
+  scoringRules   ScoringRule[]
+  routingRules   RoutingRule[]
+  slaSettings    SLASetting[]
+  integrations   Integration[]
+  credentials    Credential[]
+  audits         Audit[]
+  apiKeys        ApiKey[]
+
+  @@map("teams")
+}
+
+model Form {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  teamId    String?  @map("team_id") @db.Uuid
+  name      String
+  schema    Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team? @relation(fields: [teamId], references: [id])
+  leads Lead[]
+
+  @@map("forms")
+}
+
+model Owner {
+  id       String @id @default(cuid())
+  userId   String
+  teamId   String
+  capacity Int
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team  Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  leads Lead[]
+
+  @@unique([userId, teamId])
+  @@map("owners")
+}
+
+model Lead {
+  id         String     @id @default(cuid())
+  formId     String?    @map("form_id")
+  externalId String?
+  email      String?
+  name       String?
+  phone      String?
+  company    String?
+  domain     String?
+  source     String
+  sourceRef  String?
+  fields     Json
+  utm        Json
+  score      Int        @default(0)
+  scoreBand  ScoreBand
+  status     LeadStatus @default(NEW)
+  ownerId    String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Relations
+  form           Form?            @relation(fields: [formId], references: [id])
+  team           Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId         String
+  owner          Owner?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  dedupeKeys     LeadDedupeKey[]
+  messages       Message[]
+  timelineEvents TimelineEvent[]
+  slaClocks      SLAClock[]
+
+  // Indexes for performance
+  @@index([email])
+  @@index([domain])
+  @@index([createdAt])
+  @@index([score])
+  @@index([ownerId])
+  @@map("leads")
+}
+
+model LeadDedupeKey {
+  id        String  @id @default(cuid())
+  leadId    String
+  emailHash String?
+  domain    String?
+  nameKey   String?
+
+  // Relations
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("lead_dedupe_keys")
+}
+
+model ScoringConfig {
+  id          String   @id @default(cuid())
+  teamId      String
+  weights     Json
+  bands       Json
+  negative    Json
+  enrichment  Json
+  version     Int
+  createdBy   String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id])
+
+  @@map("scoring_configs")
+}
+
+model ScoringRule {
+  id         String          @id @default(cuid())
+  teamId     String
+  type       ScoringRuleType
+  definition Json
+  enabled    Boolean
+  order      Int
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("scoring_rules")
+}
+
+model RoutingRule {
+  id         String  @id @default(cuid())
+  teamId     String
+  definition Json
+  enabled    Boolean
+  order      Int
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("routing_rules")
+}
+
+model SLASetting {
+  id         String @id @default(cuid())
+  teamId     String
+  thresholds Json
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("sla_settings")
+}
+
+model Integration {
+  id         String            @id @default(cuid())
+  teamId     String
+  kind       IntegrationKind
+  status     IntegrationStatus
+  auth       Json
+  settings   Json
+  lastSeenAt DateTime?
+  lastSyncAt DateTime?
+  error      String?
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, kind], name: "teamId_kind")
+  @@map("integrations")
+}
+
+model Credential {
+  id        String   @id @default(cuid())
+  teamId    String
+  provider  String
+  encrypted Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, provider], name: "teamId_provider")
+  @@map("credentials")
+}
+
+model Message {
+  id        String           @id @default(cuid())
+  leadId    String
+  direction MessageDirection
+  channel   MessageChannel
+  subject   String?
+  body      String
+  meta      Json
+  createdAt DateTime         @default(now())
+
+  // Relations
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model TimelineEvent {
+  id        String            @id @default(cuid())
+  leadId    String
+  type      TimelineEventType
+  payload   Json
+  createdAt DateTime          @default(now())
+
+  // Relations
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("timeline_events")
+}
+
+model Audit {
+  id         String   @id @default(cuid())
+  teamId     String?
+  userId     String?
+  entityType String
+  entityId   String
+  action     String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  team Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audits")
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  teamId      String
+  name        String
+  keyHash     String
+  ipAllowlist Json?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+model SLAClock {
+  id          String    @id @default(cuid())
+  leadId      String
+  targetAt    DateTime
+  satisfiedAt DateTime?
+  escalatedAt DateTime?
+
+  // Relations
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("sla_clocks")
+}

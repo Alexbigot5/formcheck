@@ -1,0 +1,114 @@
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+export interface AuthenticatedRequest extends FastifyRequest {
+  user?: {
+    id: string;
+    email: string;
+    name?: string;
+    role: string;
+  };
+  teamId?: string;
+}
+
+/**
+ * Middleware to authenticate requests using Supabase JWT tokens
+ */
+export async function authenticateSupabase(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  try {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return reply.code(401).send({ error: 'Missing or invalid authorization header' });
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Verify the JWT token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return reply.code(401).send({ error: 'Invalid token' });
+    }
+
+    // Get or create user profile in our database
+    let profile = await request.server.prisma.user.findUnique({
+      where: { id: user.id },
+      include: { team: true }
+    });
+
+    if (!profile) {
+      // Create new user profile
+      const defaultTeam = await request.server.prisma.team.create({
+        data: {
+          name: `${user.email?.split('@')[0] || 'User'}'s Team`
+        }
+      });
+
+      profile = await request.server.prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.email!,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          teamId: defaultTeam.id,
+          role: 'OWNER' // First user is owner
+        },
+        include: { team: true }
+      });
+    }
+
+    // Add user info to request
+    (request as AuthenticatedRequest).user = {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name || undefined,
+      role: profile.role
+    };
+    (request as AuthenticatedRequest).teamId = profile.teamId || undefined;
+
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return reply.code(401).send({ error: 'Authentication failed' });
+  }
+}
+
+/**
+ * Create a user from Supabase auth user
+ */
+export async function createUserFromSupabase(
+  app: FastifyInstance,
+  supabaseUser: any
+): Promise<any> {
+  try {
+    // Create default team
+    const team = await app.prisma.team.create({
+      data: {
+        name: `${supabaseUser.email?.split('@')[0] || 'User'}'s Team`
+      }
+    });
+
+    // Create user profile
+    const user = await app.prisma.user.create({
+      data: {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+        teamId: team.id,
+        role: 'OWNER'
+      },
+      include: { team: true }
+    });
+
+    return user;
+  } catch (error) {
+    console.error('Error creating user from Supabase:', error);
+    throw error;
+  }
+}

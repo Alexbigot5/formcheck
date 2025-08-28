@@ -1,0 +1,127 @@
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import fastifyJwt from '@fastify/jwt';
+import pino from 'pino';
+import { loadEnv } from './config/env';
+import prismaPlugin from './plugins/prisma';
+import { registerHealthRoutes } from './modules/health/health.routes';
+import { registerAuthRoutes } from './modules/auth/auth.routes';
+import { registerSupabaseAuthRoutes } from './modules/auth/supabase-auth.routes';
+import { registerDemoCrmRoutes } from './modules/integrations/demo-crm.routes';
+import { registerEmailTemplateRoutes } from './modules/email/templates.routes';
+import { registerDemoIngestionRoutes } from './modules/ingest/demo-ingestion.routes';
+import { registerCampaignRoutes } from './modules/campaigns/campaigns.routes';
+import { registerDashboardRoutes } from './modules/analytics/dashboard.routes';
+import { registerFormRoutes } from './modules/forms/forms.routes';
+import { registerLeadRoutes } from './modules/leads/leads.routes';
+import { registerIntegrationRoutes } from './modules/integrations/integrations.routes';
+import { registerWebhookRoutes } from './modules/webhooks/webhook.routes';
+import { registerScoringRoutes } from './modules/scoring/routes';
+import { registerRoutingRoutes } from './modules/routing/routes';
+import { registerWebhookIngestionRoutes, registerInboxRoutes, registerLinkedInRoutes, registerLinkedInAnalysisRoute, registerInstagramRoutes } from './modules/ingest/index';
+import { registerEnrichmentRoutes } from './modules/enrich/index';
+import { registerAnalyticsRoutes } from './modules/analytics/analytics.routes';
+import { registerCrmSyncRoutes } from './modules/crm/sync.routes';
+import { registerOAuthRoutes } from './modules/oauth/oauth.routes';
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    authenticate: any;
+    sendSuccess: (data: any, statusCode?: number) => any;
+    sendError: (error: string, statusCode?: number) => any;
+  }
+  interface FastifyReply {
+    sendSuccess: (data: any, statusCode?: number) => any;
+    sendError: (error: string, statusCode?: number) => any;
+  }
+}
+
+async function buildServer() {
+  const env = loadEnv();
+  const logger = pino({
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty' } : undefined,
+  });
+
+  const app = Fastify({ logger });
+
+  // Configure CORS for frontend origin
+  const allowedOrigins = [
+    env.FRONTEND_URL,
+    'http://localhost:3000', // Next.js default
+    'http://localhost:8080', // Vite default
+    'http://localhost:5173', // Vite alternative port
+  ];
+  
+  await app.register(cors, { 
+    origin: env.NODE_ENV === 'development' ? allowedOrigins : [env.FRONTEND_URL],
+    credentials: true,
+  });
+  await app.register(fastifyJwt, { secret: env.JWT_SECRET });
+  await app.register(prismaPlugin);
+
+  // Register routes
+  await registerHealthRoutes(app);
+  await registerSupabaseAuthRoutes(app); // Use Supabase auth instead
+  await registerDemoCrmRoutes(app); // Demo CRM endpoints
+  await registerEmailTemplateRoutes(app); // Email templates
+  await registerDemoIngestionRoutes(app); // Lead ingestion
+  await registerCampaignRoutes(app); // Email campaigns
+  await registerDashboardRoutes(app); // Dashboard & Analytics
+  await registerFormRoutes(app);
+  await registerLeadRoutes(app);
+  await registerIntegrationRoutes(app);
+  await registerWebhookRoutes(app);
+  await registerScoringRoutes(app);
+  await registerRoutingRoutes(app);
+  await registerWebhookIngestionRoutes(app);
+  await registerInboxRoutes(app);
+  await registerLinkedInRoutes(app);
+  await registerLinkedInAnalysisRoute(app);
+  await registerInstagramRoutes(app);
+  await registerEnrichmentRoutes(app);
+  await registerAnalyticsRoutes(app);
+  await registerCrmSyncRoutes(app);
+  await registerOAuthRoutes(app);
+
+  // Add standardized response helpers
+  app.decorate('sendSuccess', function(data: any, statusCode: number = 200) {
+    return this.code(statusCode).send({ ok: true, data });
+  });
+  
+  app.decorate('sendError', function(error: string, statusCode: number = 400) {
+    return this.code(statusCode).send({ ok: false, error });
+  });
+
+  // Add reply decorators
+  app.decorateReply('sendSuccess', function(data: any, statusCode: number = 200) {
+    return this.code(statusCode).send({ ok: true, data });
+  });
+  
+  app.decorateReply('sendError', function(error: string, statusCode: number = 400) {
+    return this.code(statusCode).send({ ok: false, error });
+  });
+
+  app.get('/', async () => ({ ok: true, data: { name: 'SmartForms AI Backend', version: '0.1.0' } }));
+
+  return { app, env };
+}
+
+async function start() {
+  const { app, env } = await buildServer();
+  try {
+    await app.listen({ port: env.PORT, host: '0.0.0.0' });
+    app.log.info(`Server listening on port ${env.PORT}`);
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
+  }
+}
+
+if (process.env.NODE_ENV !== 'test') {
+  start();
+}
+
+export { buildServer };
+
+

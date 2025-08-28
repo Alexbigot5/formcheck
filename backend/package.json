@@ -1,0 +1,59 @@
+{
+  "name": "smartforms-ai-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "seed": "tsx src/scripts/seed.ts",
+    "seed:clean": "tsx src/scripts/seed.ts --clean",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:scoring": "vitest src/modules/scoring/__tests__",
+    "test:routing": "vitest src/modules/routing/__tests__",
+    "test:dedupe": "vitest src/modules/dedupe/__tests__",
+    "demo": "tsx src/scripts/test-demo.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/jwt": "^8.0.1",
+    "@fastify/multipart": "^8.0.0",
+    "@prisma/client": "^6.14.0",
+    "axios": "^1.7.7",
+    "crypto": "^1.0.1",
+    "csv-parse": "^5.5.2",
+    "csv-parser": "^3.0.0",
+    "dayjs": "^1.11.13",
+    "fastify": "^4.28.1",
+    "fastify-plugin": "^4.5.1",
+    "imapflow": "^1.0.164",
+    "mailparser": "^3.7.1",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.15",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.3.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "prisma": "^6.14.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^1.6.0"
+  }
+}
