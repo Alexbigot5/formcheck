@@ -224,15 +224,3 @@ async function handleCrmContactUpdated(app: FastifyInstance, data: any) {
   app.log.info('Processing crm.contact.updated webhook:', data);
   // TODO: Implement CRM sync logic
 }
-
-async function createLeadFromForm(app: FastifyInstance, formId: string, formData: Record<string, any>): Promise<string> {
-  // TODO: Implement lead creation from form data
-  app.log.info('Creating lead from form:', { formId, formData });
-  return 'temp-lead-id';
-}
-
-async function calculateLeadScore(app: FastifyInstance, formData: Record<string, any>): Promise<number> {
-  // TODO: Implement lead scoring logic
-  app.log.info('Calculating lead score:', formData);
-  return 50; // Default score
-}

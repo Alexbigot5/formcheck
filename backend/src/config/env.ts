@@ -23,14 +23,18 @@ const EnvSchema = z.object({
   GMAIL_CLIENT_SECRET: z.string().optional(),
   GMAIL_REDIRECT_URI: z.string().url().optional(),
 
-  HUBSPOT_CLIENT_ID: z.string(),
-  HUBSPOT_CLIENT_SECRET: z.string(),
-  HUBSPOT_REDIRECT_URL: z.string().url(),
+  HUBSPOT_CLIENT_ID: z.string().optional(),
+  HUBSPOT_CLIENT_SECRET: z.string().optional(),
+  HUBSPOT_REDIRECT_URL: z.string().url().optional(),
 
-  SALESFORCE_CLIENT_ID: z.string(),
-  SALESFORCE_CLIENT_SECRET: z.string(),
-  SALESFORCE_REDIRECT_URL: z.string().url(),
-  SALESFORCE_LOGIN_URL: z.string().url(),
+  SALESFORCE_CLIENT_ID: z.string().optional(),
+  SALESFORCE_CLIENT_SECRET: z.string().optional(),
+  SALESFORCE_REDIRECT_URL: z.string().url().optional(),
+  SALESFORCE_LOGIN_URL: z.string().url().optional(),
+
+  // Supabase configuration (for auth verification)
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_ANON_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

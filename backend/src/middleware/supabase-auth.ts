@@ -1,10 +1,15 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
+import { loadEnv } from '../config/env.js';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const env = loadEnv();
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Only create Supabase client if environment variables are provided
+let supabase: ReturnType<typeof createClient> | null = null;
+
+if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+  supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+}
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
@@ -24,6 +29,10 @@ export async function authenticateSupabase(
   reply: FastifyReply
 ) {
   try {
+    if (!supabase) {
+      return reply.code(500).send({ error: 'Supabase not configured' });
+    }
+
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return reply.code(401).send({ error: 'Missing or invalid authorization header' });
@@ -86,29 +95,25 @@ export async function createUserFromSupabase(
   app: FastifyInstance,
   supabaseUser: any
 ): Promise<any> {
-  try {
-    // Create default team
-    const team = await app.prisma.team.create({
-      data: {
-        name: `${supabaseUser.email?.split('@')[0] || 'User'}'s Team`
-      }
-    });
+  
+  // Create default team for the user
+  const team = await app.prisma.team.create({
+    data: {
+      name: `${supabaseUser.email?.split('@')[0] || 'User'}'s Team`
+    }
+  });
 
-    // Create user profile
-    const user = await app.prisma.user.create({
-      data: {
-        id: supabaseUser.id,
-        email: supabaseUser.email,
-        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-        teamId: team.id,
-        role: 'OWNER'
-      },
-      include: { team: true }
-    });
+  // Create user profile
+  const user = await app.prisma.user.create({
+    data: {
+      id: supabaseUser.id,
+      email: supabaseUser.email,
+      name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+      teamId: team.id,
+      role: 'OWNER'
+    },
+    include: { team: true }
+  });
 
-    return user;
-  } catch (error) {
-    console.error('Error creating user from Supabase:', error);
-    throw error;
-  }
+  return user;
 }

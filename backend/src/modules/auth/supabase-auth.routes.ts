@@ -2,11 +2,16 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth.js';
+import { loadEnv } from '../../config/env.js';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+const env = loadEnv();
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Only create Supabase client if environment variables are provided
+let supabase: ReturnType<typeof createClient> | null = null;
+
+if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+  supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+}
 
 // Validation schemas
 const verifyTokenSchema = z.object({
@@ -23,6 +28,10 @@ export async function registerSupabaseAuthRoutes(app: FastifyInstance) {
     }
   }, async (request, reply) => {
     try {
+      if (!supabase) {
+        return reply.code(500).send({ ok: false, error: 'Supabase not configured' });
+      }
+
       const authHeader = request.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return reply.code(401).send({ ok: false, error: 'Missing authorization header' });
@@ -109,19 +118,18 @@ export async function registerSupabaseAuthRoutes(app: FastifyInstance) {
     schema: {
       body: z.object({
         name: z.string().optional(),
-        role: z.enum(['OWNER', 'EDITOR', 'VIEWER']).optional()
+        // Add other updatable fields as needed
       })
     }
   }, async (request: AuthenticatedRequest, reply) => {
+    const { name } = request.body as { name?: string };
     const userId = request.user!.id;
-    const { name, role } = request.body as { name?: string; role?: string };
 
     try {
       const updatedUser = await app.prisma.user.update({
         where: { id: userId },
         data: {
-          ...(name && { name }),
-          ...(role && { role: role as any })
+          ...(name && { name })
         }
       });
 

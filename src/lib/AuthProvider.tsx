@@ -125,11 +125,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          role: 'user' as UserRole, // Default role, you might want to get this from user metadata or database
+          role: 'admin' as UserRole, // Default role for Supabase-only mode
         };
         setUser(userData);
-        setUserRole('user');
-        setTeamId('default-team'); // You might want to get this from user metadata or database
+        setUserRole('admin');
+        setTeamId(session.user.id); // Use user ID as team ID for simplicity
+        setIsLoading(false);
       }
       const token = getAuthToken();
       
@@ -177,18 +178,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSupabaseUser(session?.user ?? null);
           
           if (session?.user && session.access_token) {
-            // Set the token for API calls
+            // Set the token for API calls (for when backend is available)
             setAuthToken(session.access_token);
             
-            // Sync with backend to get/create user profile
-            try {
-              await checkAuthMutation.mutateAsync({});
-            } catch (error) {
-              console.error('Failed to sync user with backend:', error);
-            }
+            // Convert Supabase user to our User type (frontend-only mode)
+            const userData: User = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+              role: 'admin' as UserRole,
+            };
+            
+            // Store user data locally
+            localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+            localStorage.setItem(STORAGE_KEYS.USER_ROLE, 'admin');
+            localStorage.setItem(STORAGE_KEYS.TEAM_ID, session.user.id);
+            
+            setUser(userData);
+            setUserRole('admin');
+            setTeamId(session.user.id);
           } else {
             // Clear auth state
             removeAuthToken();
+            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+            localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+            localStorage.removeItem(STORAGE_KEYS.TEAM_ID);
             setUser(null);
             setUserRole(null);
             setTeamId(null);

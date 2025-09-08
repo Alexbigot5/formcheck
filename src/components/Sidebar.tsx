@@ -14,7 +14,8 @@ import {
   BarChart3,
   Send,
   Building2,
-  TrendingUp
+  TrendingUp,
+  Lightbulb
 } from "lucide-react";
 
 const sidebarItems = [
@@ -28,6 +29,11 @@ const sidebarItems = [
     title: "View Forms",
     href: "/forms",
     icon: Eye,
+  },
+  {
+    title: "Recommendations Hub",
+    href: "/recommendations",
+    icon: Lightbulb,
   },
   {
     title: "Lead Inbox",

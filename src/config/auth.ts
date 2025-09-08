@@ -12,7 +12,7 @@ export const authConfig = {
   // Mock user data for development
   mockUser: {
     id: 'mock-user-123',
-    email: 'dev@smartforms.ai',
+    email: 'demo@example.com',
     name: 'Demo User',
     role: 'admin' as const,
     team_id: 'mock-team-456',

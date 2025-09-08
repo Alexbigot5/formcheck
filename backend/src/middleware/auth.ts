@@ -1,6 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { createHash, createHmac } from 'crypto';
-import { env } from '../config/env.js';
+import { loadEnv } from '../config/env.js';
+
+const env = loadEnv();
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
@@ -13,11 +15,11 @@ export interface AuthenticatedRequest extends FastifyRequest {
     teamId: string;
     name: string;
   };
+  teamId?: string;
 }
 
 /**
- * JWT Authentication Middleware
- * Verifies JWT token and extracts user info
+ * JWT-based authentication middleware
  */
 export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply) {
   try {
@@ -26,12 +28,12 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
       return reply.code(401).send({ error: 'Missing authorization token' });
     }
 
-    // Verify JWT token using Fastify JWT
+    // Verify JWT token using Fastify JWT plugin
     const decoded = await request.jwtVerify();
-    
-    // Get user details from database
+
+    // Get user from database
     const user = await request.server.prisma.user.findUnique({
-      where: { id: decoded.sub as string },
+      where: { id: decoded.sub },
       include: {
         owners: {
           include: { team: true }
@@ -43,9 +45,10 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
       return reply.code(401).send({ error: 'Invalid user or no team access' });
     }
 
-    // For simplicity, use the first team. In production, you might want team switching logic
+    // Get primary team (first team the user owns/belongs to)
     const primaryOwner = user.owners[0];
-    
+
+    // Add user info to request
     request.user = {
       id: user.id,
       teamId: primaryOwner.teamId,
@@ -58,8 +61,7 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
 }
 
 /**
- * API Key Authentication Middleware
- * Verifies API key hash and checks IP allowlist
+ * API Key authentication middleware
  */
 export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyReply) {
   try {
@@ -70,7 +72,7 @@ export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyRe
 
     // Hash the provided API key
     const keyHash = createHash('sha256').update(apiKey).digest('hex');
-    
+
     // Find API key in database
     const apiKeyRecord = await request.server.prisma.apiKey.findFirst({
       where: { keyHash },
@@ -91,6 +93,7 @@ export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyRe
       }
     }
 
+    // Add API key info to request
     request.apiKey = {
       id: apiKeyRecord.id,
       teamId: apiKeyRecord.teamId,
@@ -103,8 +106,7 @@ export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyRe
 }
 
 /**
- * Webhook HMAC Verification Middleware
- * Verifies X-Signature header using HMAC-SHA256
+ * Webhook HMAC authentication middleware
  */
 export async function webhookAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
@@ -113,7 +115,6 @@ export async function webhookAuth(request: FastifyRequest, reply: FastifyReply) 
       return reply.code(401).send({ error: 'Missing X-Signature header' });
     }
 
-    // Get raw body for HMAC verification
     const rawBody = request.body as string;
     if (!rawBody) {
       return reply.code(400).send({ error: 'Missing request body' });
@@ -124,10 +125,10 @@ export async function webhookAuth(request: FastifyRequest, reply: FastifyReply) 
       .update(rawBody)
       .digest('hex');
 
-    // Remove 'sha256=' prefix if present
+    // Extract signature from header (remove 'sha256=' prefix if present)
     const providedSignature = signature.replace(/^sha256=/, '');
 
-    // Constant-time comparison to prevent timing attacks
+    // Compare signatures using constant-time comparison
     if (!constantTimeEquals(expectedSignature, providedSignature)) {
       return reply.code(401).send({ error: 'Invalid signature' });
     }
@@ -138,23 +139,20 @@ export async function webhookAuth(request: FastifyRequest, reply: FastifyReply) 
 }
 
 /**
- * Multi-tenant isolation middleware
- * Ensures requests can only access data from their team
+ * Team isolation middleware - ensures requests are scoped to user's team
  */
 export async function teamIsolation(request: AuthenticatedRequest, reply: FastifyReply) {
-  // Get teamId from either JWT user or API key
   const teamId = request.user?.teamId || request.apiKey?.teamId;
   
   if (!teamId) {
     return reply.code(401).send({ error: 'No team context available' });
   }
 
-  // Add teamId to request for use in route handlers
-  (request as any).teamId = teamId;
+  request.teamId = teamId;
 }
 
 /**
- * Combined authentication middleware that tries JWT first, then API key
+ * Combined authentication middleware (JWT or API Key)
  */
 export async function authenticate(request: AuthenticatedRequest, reply: FastifyReply) {
   const hasJWT = extractBearerToken(request);
@@ -168,7 +166,7 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
     return reply.code(401).send({ error: 'Authentication required' });
   }
 
-  // Apply team isolation after authentication
+  // Apply team isolation
   await teamIsolation(request, reply);
 }
 
@@ -182,13 +180,13 @@ function extractBearerToken(request: FastifyRequest): string | null {
 }
 
 function extractApiKey(request: FastifyRequest): string | null {
-  // Check X-API-Key header
+  // Check X-API-Key header first
   const apiKeyHeader = request.headers['x-api-key'] as string;
   if (apiKeyHeader) {
     return apiKeyHeader;
   }
 
-  // Check Authorization header with API key format
+  // Check Authorization header with ApiKey scheme
   const authHeader = request.headers.authorization;
   if (authHeader && authHeader.startsWith('ApiKey ')) {
     return authHeader.slice(7);
@@ -198,18 +196,19 @@ function extractApiKey(request: FastifyRequest): string | null {
 }
 
 function getClientIP(request: FastifyRequest): string {
-  // Check common headers for real IP (when behind proxy)
+  // Check X-Forwarded-For header (from load balancer/proxy)
   const forwarded = request.headers['x-forwarded-for'] as string;
   if (forwarded) {
     return forwarded.split(',')[0].trim();
   }
 
+  // Check X-Real-IP header
   const realIP = request.headers['x-real-ip'] as string;
   if (realIP) {
     return realIP;
   }
 
-  // Fallback to connection remote address
+  // Fall back to connection IP
   return request.ip || request.socket.remoteAddress || 'unknown';
 }
 

@@ -62,10 +62,9 @@ const Login = () => {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // For development, use any email/password to log in
       await login({
-        email: values.email || "dev@smartforms.ai",
-        password: values.password || "password",
+        email: values.email,
+        password: values.password,
       });
       
       toast.success("Welcome back!");
@@ -91,9 +90,11 @@ const Login = () => {
     console.log("Quick login clicked");
     try {
       console.log("Attempting login...");
+      // Use form values for login
+      const formValues = form.getValues();
       await login({
-        email: "dev@smartforms.ai",
-        password: "password",
+        email: formValues.email,
+        password: formValues.password,
       });
       
       console.log("Login successful, navigating to dashboard");
@@ -183,7 +184,7 @@ const Login = () => {
                     variant="hero"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Logging in..." : "Log in (Demo)"}
+                    {isLoading ? "Logging in..." : "Log in"}
                   </Button>
 
                   <div className="text-center">

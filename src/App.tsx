@@ -30,6 +30,9 @@ import SourceAnalytics from "./pages/SourceAnalytics";
 import UniboxPage from "./pages/UniboxPage";
 import UniboxPageSimple from "./pages/UniboxPageSimple";
 import UniboxPageWithStore from "./pages/UniboxPageWithStore";
+import SmartRecommendationsHub from "./pages/SmartRecommendationsHub";
+import IntelligenceJourneys from "./pages/IntelligenceJourneys";
+import IntelligenceRevenue from "./pages/IntelligenceRevenue";
 import ErrorBoundary from "./components/ErrorBoundary";
 const App = () => (
   <TooltipProvider>
@@ -61,6 +64,13 @@ const App = () => (
         <Route path="/outbound-campaigns" element={<OutboundCampaigns />} />
         <Route path="/crm" element={<CrmHub />} />
         <Route path="/source-analytics" element={<SourceAnalytics />} />
+        <Route path="/recommendations" element={<SmartRecommendationsHub />} />
+        <Route path="/intelligence/journeys" element={<IntelligenceJourneys />} />
+        <Route path="/intelligence/revenue" element={<IntelligenceRevenue />} />
+        <Route path="/intelligence/funnel" element={<SmartRecommendationsHub />} />
+        <Route path="/intelligence/predictive" element={<SmartRecommendationsHub />} />
+        <Route path="/intelligence/competitive" element={<SmartRecommendationsHub />} />
+        <Route path="/intelligence/persona" element={<SmartRecommendationsHub />} />
         <Route path="/unibox" element={<ErrorBoundary><UniboxPage /></ErrorBoundary>} />
         <Route path="/unibox-full" element={<UniboxPage />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
