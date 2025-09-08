@@ -186,3 +186,25 @@ export const WarningBox: React.FC<{
     </div>
   </div>
 );
+
+export const CopyableField: React.FC<{
+  value: string;
+  label?: string;
+}> = ({ value, label = 'Value' }) => (
+  <div className="flex items-center gap-2 p-2 bg-gray-50 border rounded">
+    <code className="flex-1 text-sm text-gray-800 break-all">
+      {value}
+    </code>
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => {
+        navigator.clipboard.writeText(value);
+        toast.success(`${label} copied to clipboard!`);
+      }}
+      className="shrink-0"
+    >
+      <Copy className="w-3 h-3" />
+    </Button>
+  </div>
+);

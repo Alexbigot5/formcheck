@@ -221,7 +221,7 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
                 >
                   <option value="hot">Hot Leads (75+ score)</option>
                   <option value="warm">Warm Leads (45-74 score)</option>
-                  <option value="cold">Cold Leads (<45 score)</option>
+                  <option value="cold">Cold Leads (&lt;45 score)</option>
                 </select>
               </div>
               <div className="flex items-center space-x-2">
