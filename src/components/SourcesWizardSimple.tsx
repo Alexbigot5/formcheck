@@ -28,40 +28,26 @@ import { getSourceConfig } from "@/lib/sourceMapping";
 const SourcesWizardSimple = () => {
   const [attributionMode, setAttributionMode] = useState<'first-touch' | 'last-touch' | 'multi-touch'>('first-touch');
 
-  // Mock data for leads this month by source
-  const mockLeadStats = [
-    { sourceId: 'youtube', leads: 30 },
-    { sourceId: 'newsletter', leads: 20 },
-    { sourceId: 'linkedin-leads', leads: 15 },
-    { sourceId: 'website-form', leads: 12 },
-    { sourceId: 'instagram-dms', leads: 8 },
-    { sourceId: 'webhook', leads: 5 },
-    { sourceId: 'mailchimp', leads: 18 },
-    { sourceId: 'calendly', leads: 25 },
-    { sourceId: 'typeform', leads: 14 },
-    { sourceId: 'intercom', leads: 22 }
-  ].map(stat => {
-    const config = getSourceConfig(stat.sourceId);
-    return {
-      source: config.label,
-      sourceId: stat.sourceId,
-      leads: stat.leads,
-      icon: config.icon,
-      color: config.color
-    };
-  }).sort((a, b) => b.leads - a.leads).slice(0, 6);
+  // Lead stats will be loaded from API when available
+  const leadStats: Array<{
+    source: string;
+    sourceId: string;
+    leads: number;
+    icon: any;
+    color: string;
+  }> = [];
 
-  // Mock tracking status data
+  // Tracking status will be loaded from API when available
   const trackingStatus = {
-    utmParametersDetected: true,
-    referrerCaptured: true,
-    lastDetectedUTM: 'utm_source=youtube&utm_medium=video&utm_campaign=product_demo',
-    lastReferrer: 'https://www.youtube.com/watch?v=demo',
-    trackingHealth: 'healthy'
+    utmParametersDetected: false,
+    referrerCaptured: false,
+    lastDetectedUTM: '',
+    lastReferrer: '',
+    trackingHealth: 'unknown' as 'healthy' | 'warning' | 'error' | 'unknown'
   };
 
   // Chart data for the bar chart
-  const chartData = mockLeadStats.map(item => ({
+  const chartData = leadStats.map(item => ({
     name: item.source,
     leads: item.leads,
     fill: item.color
@@ -318,7 +304,7 @@ const SourcesWizardSimple = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockLeadStats.map((stat, index) => {
+            {leadStats.map((stat, index) => {
               const IconComponent = stat.icon;
               return (
                 <div key={stat.sourceId} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
@@ -338,7 +324,7 @@ const SourcesWizardSimple = () => {
                       {stat.leads}
                     </Badge>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {((stat.leads / mockLeadStats.reduce((sum, s) => sum + s.leads, 0)) * 100).toFixed(0)}%
+                      {((stat.leads / leadStats.reduce((sum, s) => sum + s.leads, 0)) * 100).toFixed(0)}%
                     </div>
                   </div>
                 </div>
@@ -349,7 +335,7 @@ const SourcesWizardSimple = () => {
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total Leads This Month:</span>
-              <span className="font-bold text-lg">{mockLeadStats.reduce((sum, stat) => sum + stat.leads, 0)}</span>
+              <span className="font-bold text-lg">{leadStats.reduce((sum, stat) => sum + stat.leads, 0)}</span>
             </div>
           </div>
         </CardContent>
@@ -408,7 +394,7 @@ const SourcesWizardSimple = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Leads This Month</span>
-              <span className="text-sm font-medium">{mockLeadStats.reduce((sum, stat) => sum + stat.leads, 0)}</span>
+              <span className="text-sm font-medium">{leadStats.reduce((sum, stat) => sum + stat.leads, 0)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Attribution Mode</span>

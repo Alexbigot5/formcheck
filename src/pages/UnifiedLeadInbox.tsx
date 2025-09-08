@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { leadsApi } from "@/lib/leadsApi";
 import { 
   Inbox,
   Search,
@@ -122,94 +123,33 @@ const UnifiedLeadInbox: React.FC = () => {
 
   const loadLeads = async () => {
     try {
-      // Mock lead data since we don't have a leads table yet
-      const mockLeads: Lead[] = [
-        {
-          id: "lead-1",
-          name: "Sarah Johnson",
-          email: "sarah@techcorp.com",
-          company: "TechCorp Solutions",
-          phone: "+1 (555) 123-4567",
-          source: "website_form",
-          score: 85,
-          status: "new",
-          owner: "john@company.com",
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          last_activity: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          sla_status: "on_time",
-          sla_due: new Date(Date.now() + 13 * 60 * 60 * 1000).toISOString(),
-          tags: ["enterprise", "hot-lead"],
-          priority: "high"
-        },
-        {
-          id: "lead-2",
-          name: "Mike Chen",
-          email: "mike@startup.io",
-          company: "StartupCo",
-          source: "linkedin_csv",
-          score: 72,
-          status: "contacted",
-          owner: "jane@company.com",
-          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          last_activity: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          sla_status: "due_soon",
-          sla_due: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-          tags: ["startup", "follow-up"],
-          priority: "medium"
-        },
-        {
-          id: "lead-3",
-          name: "Emma Rodriguez",
-          email: "emma@designstudio.com",
-          company: "Creative Design Studio",
-          source: "instagram_dm",
-          score: 45,
-          status: "qualified",
-          owner: "alex@company.com",
-          created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          last_activity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          sla_status: "overdue",
-          sla_due: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-          tags: ["creative", "small-business"],
-          priority: "low"
-        },
-        {
-          id: "lead-4",
-          name: "David Park",
-          email: "david@enterprise.com",
-          company: "Enterprise Corp",
-          source: "shared_inbox",
-          score: 91,
-          status: "proposal",
-          owner: "john@company.com",
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          last_activity: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-          sla_status: "on_time",
-          sla_due: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-          tags: ["enterprise", "proposal-sent"],
-          priority: "high"
-        },
-        {
-          id: "lead-5",
-          name: "Lisa Thompson",
-          email: "lisa@webhook-source.com",
-          company: "Webhook Solutions",
-          source: "webhook",
-          score: 58,
-          status: "new",
-          created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          last_activity: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          sla_status: "due_soon",
-          sla_due: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-          tags: ["api", "integration"],
-          priority: "medium"
-        }
-      ];
+      // Load real leads from API
+      const response = await leadsApi.getLeads({ limit: 100 });
+      
+      // Convert API leads to component format
+      const convertedLeads: Lead[] = response.leads.map(apiLead => ({
+        id: apiLead.id,
+        name: apiLead.name || '',
+        email: apiLead.email || '',
+        company: apiLead.company || '',
+        phone: apiLead.phone || '',
+        source: apiLead.source,
+        score: apiLead.score,
+        status: apiLead.status.toLowerCase() as Lead['status'],
+        owner: apiLead.ownerName || apiLead.owner?.user.email || '',
+        created_at: apiLead.createdAt,
+        last_activity: apiLead.updatedAt,
+        sla_status: apiLead.slaStatus || 'on_time',
+        sla_due: apiLead.slaCountdown?.targetAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        tags: [], // API doesn't have tags field yet
+        priority: apiLead.scoreBand === 'HIGH' ? 'high' : apiLead.scoreBand === 'MEDIUM' ? 'medium' : 'low'
+      }));
 
-      setLeads(mockLeads);
+      setLeads(convertedLeads);
     } catch (error) {
-      toast.error("Failed to load leads");
       console.error("Error loading leads:", error);
+      toast.error("Failed to load leads");
+      setLeads([]);
     } finally {
       setLoading(false);
     }

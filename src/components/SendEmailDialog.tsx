@@ -22,7 +22,8 @@ import {
   Target,
   Calendar
 } from "lucide-react";
-import { EmailSender, Lead, SendEmailOptions, EmailSendResult } from "@/lib/emailSender";
+import { EmailSender, SendEmailOptions, EmailSendResult } from "@/lib/emailSender";
+import { leadsApi, Lead as ApiLead } from "@/lib/leadsApi";
 
 interface SendEmailDialogProps {
   isOpen: boolean;
@@ -46,7 +47,9 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
     dryRun: true
   });
 
-  const [selectedLeads, setSelectedLeads] = useState<Lead[]>([]);
+  const [selectedLeads, setSelectedLeads] = useState<ApiLead[]>([]);
+  const [allLeads, setAllLeads] = useState<ApiLead[]>([]);
+  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendResults, setSendResults] = useState<{
     results: EmailSendResult[];
@@ -55,69 +58,27 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
 
   const emailSender = EmailSender.getInstance();
 
-  // Mock leads data
-  const mockLeads: Lead[] = [
-    {
-      id: '1',
-      name: 'John Smith',
-      email: 'john@example.com',
-      company: 'Acme Corp',
-      jobRole: 'Marketing Manager',
-      score: 85,
-      scoreBand: 'HIGH',
-      channel: 'LinkedIn',
-      campaign: 'Q4 Product Launch',
-      createdAt: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah@techcorp.com',
-      company: 'TechCorp',
-      jobRole: 'VP of Sales',
-      score: 92,
-      scoreBand: 'HIGH',
-      channel: 'Website Form',
-      campaign: 'Enterprise Demo',
-      createdAt: '2024-01-15T11:15:00Z'
-    },
-    {
-      id: '3',
-      name: 'Mike Brown',
-      email: 'mike@startup.io',
-      company: 'StartupCorp',
-      jobRole: 'Founder',
-      score: 78,
-      scoreBand: 'HIGH',
-      channel: 'Webinar',
-      campaign: 'Growth Series',
-      createdAt: '2024-01-15T09:45:00Z'
-    },
-    {
-      id: '4',
-      name: 'Lisa Davis',
-      email: 'lisa@midsize.com',
-      company: 'MidSize Inc',
-      jobRole: 'Director',
-      score: 65,
-      scoreBand: 'MEDIUM',
-      channel: 'Newsletter',
-      campaign: 'Monthly Update',
-      createdAt: '2024-01-14T16:20:00Z'
-    },
-    {
-      id: '5',
-      name: 'Tom Wilson',
-      email: 'tom@smallbiz.com',
-      company: 'Small Business',
-      jobRole: 'Owner',
-      score: 35,
-      scoreBand: 'LOW',
-      channel: 'Social Media',
-      campaign: 'Brand Awareness',
-      createdAt: '2024-01-14T14:30:00Z'
+  // Load real leads from API
+  const loadLeads = async () => {
+    try {
+      setLoading(true);
+      const response = await leadsApi.getLeads({ limit: 100 });
+      setAllLeads(response.leads);
+    } catch (error: any) {
+      console.error('Failed to load leads:', error);
+      toast.error('Failed to load leads');
+      setAllLeads([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Load leads when component mounts
+  useEffect(() => {
+    if (isOpen) {
+      loadLeads();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (initialTemplate) {
@@ -132,7 +93,7 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
 
   useEffect(() => {
     // Auto-select leads based on segment
-    const filtered = mockLeads.filter(lead => {
+    const filtered = allLeads.filter(lead => {
       switch (emailOptions.segment) {
         case 'hot':
           return lead.scoreBand === 'HIGH' || lead.score >= 75;
@@ -145,7 +106,7 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
       }
     });
     setSelectedLeads(filtered);
-  }, [emailOptions.segment]);
+  }, [emailOptions.segment, allLeads]);
 
   const handleSend = async () => {
     if (!emailOptions.subject.trim() || !emailOptions.body.trim()) {
@@ -180,10 +141,27 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
   const previewTemplate = () => {
     if (!emailOptions.subject && !emailOptions.body) return null;
     
-    const sampleLead = selectedLeads[0] || mockLeads[0];
+    const sampleLead = selectedLeads[0] || allLeads[0];
+    if (!sampleLead) return null;
+    
+    // Convert API lead to EmailSender lead format
+    const emailLead = {
+      id: sampleLead.id,
+      name: sampleLead.name || 'Unknown',
+      email: sampleLead.email || '',
+      company: sampleLead.company || '',
+      jobRole: '', // API lead doesn't have jobRole
+      score: sampleLead.score,
+      scoreBand: sampleLead.scoreBand,
+      channel: sampleLead.source,
+      campaign: '', // API lead doesn't have campaign
+      responseSummary: '', // API lead doesn't have responseSummary
+      createdAt: sampleLead.createdAt
+    };
+    
     return {
-      subject: emailSender.previewTemplate(emailOptions.subject, sampleLead),
-      body: emailSender.previewTemplate(emailOptions.body, sampleLead)
+      subject: emailSender.previewTemplate(emailOptions.subject, emailLead),
+      body: emailSender.previewTemplate(emailOptions.body, emailLead)
     };
   };
 
@@ -313,23 +291,31 @@ export const SendEmailDialog: React.FC<SendEmailDialogProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {selectedLeads.map((lead) => (
-                    <div key={lead.id} className="flex items-center justify-between p-2 border rounded">
-                      <div>
-                        <div className="font-medium">{lead.name}</div>
-                        <div className="text-sm text-muted-foreground">{lead.email}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {lead.company} • Score: {lead.score}
-                        </div>
-                      </div>
-                      <Badge variant={
-                        lead.scoreBand === 'HIGH' ? 'default' : 
-                        lead.scoreBand === 'MEDIUM' ? 'secondary' : 'outline'
-                      }>
-                        {lead.scoreBand}
-                      </Badge>
+                  {loading ? (
+                    <div className="text-center py-4">Loading leads...</div>
+                  ) : selectedLeads.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No leads match the selected segment criteria
                     </div>
-                  ))}
+                  ) : (
+                    selectedLeads.map((lead) => (
+                      <div key={lead.id} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <div className="font-medium">{lead.name || lead.email || 'Unknown Lead'}</div>
+                          <div className="text-sm text-muted-foreground">{lead.email}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {lead.company && `${lead.company} • `}Score: {lead.score}
+                          </div>
+                        </div>
+                        <Badge variant={
+                          lead.scoreBand === 'HIGH' ? 'default' : 
+                          lead.scoreBand === 'MEDIUM' ? 'secondary' : 'outline'
+                        }>
+                          {lead.scoreBand}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>

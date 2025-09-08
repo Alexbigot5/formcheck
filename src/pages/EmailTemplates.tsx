@@ -96,43 +96,12 @@ const EmailTemplates: React.FC = () => {
   const [newTemplateName, setNewTemplateName] = useState<string>("");
   const [sendEmailOpen, setSendEmailOpen] = useState(false);
 
-  // Mock performance stats for each segment
-  const mockPerformanceStats: Record<Segment, PerformanceStats> = {
-    hot: { openRate: 78, replyRate: 45, clickRate: 32, sent: 156 },
-    warm: { openRate: 65, replyRate: 28, clickRate: 18, sent: 284 },
-    cold: { openRate: 42, replyRate: 12, clickRate: 8, sent: 521 }
-  };
-
-  // Mock saved templates
-  const mockSavedTemplates: SavedTemplate[] = [
-    {
-      id: '1',
-      name: 'Q4 Product Launch - Hot',
-      segment: 'hot',
-      subject: 'Ready to see {{campaign}} in action, {{lead.name}}?',
-      body: 'Hi {{lead.name}},\n\nYour {{score}} score from {{channel}} shows you\'re ready for our {{campaign}}...',
-      createdAt: '2024-01-15',
-      performance: { openRate: 82, replyRate: 48, clickRate: 35, sent: 89 }
-    },
-    {
-      id: '2',
-      name: 'Nurture Series - Warm',
-      segment: 'warm',
-      subject: 'Following up on {{campaign}}, {{lead.name}}',
-      body: 'Hi {{lead.name}},\n\nSince you engaged with our {{campaign}} on {{channel}}...',
-      createdAt: '2024-01-10',
-      performance: { openRate: 71, replyRate: 31, clickRate: 22, sent: 145 }
-    },
-    {
-      id: '3',
-      name: 'Welcome Series - Cold',
-      segment: 'cold',
-      subject: 'Thanks for joining us from {{channel}}, {{lead.name}}',
-      body: 'Welcome {{lead.name}},\n\nWe noticed you found us through {{channel}}...',
-      createdAt: '2024-01-05',
-      performance: { openRate: 38, replyRate: 9, clickRate: 5, sent: 312 }
-    }
-  ];
+  // Performance stats - will be loaded from API when available
+  const [performanceStats, setPerformanceStats] = useState<Record<Segment, PerformanceStats>>({
+    hot: { openRate: 0, replyRate: 0, clickRate: 0, sent: 0 },
+    warm: { openRate: 0, replyRate: 0, clickRate: 0, sent: 0 },
+    cold: { openRate: 0, replyRate: 0, clickRate: 0, sent: 0 }
+  });
 
   const renderTemplate = (segment: Segment) => {
     const t = templates[segment];
@@ -164,7 +133,7 @@ const EmailTemplates: React.FC = () => {
       subject: templates[active].subject,
       body: templates[active].body,
       createdAt: new Date().toISOString().split('T')[0],
-      performance: mockPerformanceStats[active]
+      performance: performanceStats[active]
     };
     
     setSavedTemplates(prev => [newTemplate, ...prev]);
@@ -194,9 +163,21 @@ const EmailTemplates: React.FC = () => {
     toast.success(`Deleted template "${template?.name}"`);
   };
 
-  // Initialize with mock templates
+  // Load saved templates from API when available
   useEffect(() => {
-    setSavedTemplates(mockSavedTemplates);
+    // TODO: Load templates from API when available
+    // const loadTemplates = async () => {
+    //   try {
+    //     const templates = await emailTemplatesApi.getTemplates();
+    //     setSavedTemplates(templates);
+    //   } catch (error) {
+    //     console.error('Failed to load templates:', error);
+    //   }
+    // };
+    // loadTemplates();
+    
+    // For now, start with empty templates
+    setSavedTemplates([]);
   }, []);
 
   useEffect(() => {
@@ -497,7 +478,7 @@ const EmailTemplates: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" />
-                    Performance Stats (Mock)
+                    Performance Stats
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -507,27 +488,27 @@ const EmailTemplates: React.FC = () => {
                         <Eye className="w-4 h-4 text-blue-500" />
                         <span className="text-sm font-medium">Open Rate</span>
                       </div>
-                      <div className="text-2xl font-bold text-blue-600">{mockPerformanceStats[active].openRate}%</div>
+                      <div className="text-2xl font-bold text-blue-600">{performanceStats[active].openRate}%</div>
                     </div>
                     <div className="text-center p-3 border rounded-lg">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <Reply className="w-4 h-4 text-green-500" />
                         <span className="text-sm font-medium">Reply Rate</span>
                       </div>
-                      <div className="text-2xl font-bold text-green-600">{mockPerformanceStats[active].replyRate}%</div>
+                      <div className="text-2xl font-bold text-green-600">{performanceStats[active].replyRate}%</div>
                     </div>
                     <div className="text-center p-3 border rounded-lg">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <MousePointer className="w-4 h-4 text-purple-500" />
                         <span className="text-sm font-medium">Click Rate</span>
                       </div>
-                      <div className="text-2xl font-bold text-purple-600">{mockPerformanceStats[active].clickRate}%</div>
+                      <div className="text-2xl font-bold text-purple-600">{performanceStats[active].clickRate}%</div>
                     </div>
                   </div>
                   <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Total Sent:</span>
-                      <span className="font-medium">{mockPerformanceStats[active].sent} emails</span>
+                      <span className="font-medium">{performanceStats[active].sent} emails</span>
                     </div>
                   </div>
                 </CardContent>
