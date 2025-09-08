@@ -20,6 +20,8 @@ import { MailchimpWizard } from "@/components/source-wizards/MailchimpWizard";
 import { CalendlyWizard } from "@/components/source-wizards/CalendlyWizard";
 import { TypeformWizard } from "@/components/source-wizards/TypeformWizard";
 import { IntercomWizard } from "@/components/source-wizards/IntercomWizard";
+import { EmailWizard } from "@/components/source-wizards/EmailWizard";
+import { WebsiteFormWizard } from "@/components/source-wizards/WebsiteFormWizard";
 
 interface LeadSource {
   id: string;
@@ -85,7 +87,7 @@ const MultiIntakeSettings = () => {
 
   const handleConnect = (sourceId: string) => {
     // Check if source has a dedicated wizard
-    if (['mailchimp', 'calendly', 'typeform', 'intercom'].includes(sourceId)) {
+    if (['mailchimp', 'calendly', 'typeform', 'intercom', 'shared-inbox', 'website-form'].includes(sourceId)) {
       setActiveWizard(sourceId);
     } else {
       // For sources without wizards, mark as connected directly
@@ -435,6 +437,18 @@ const MultiIntakeSettings = () => {
       )}
       {activeWizard === 'intercom' && (
         <IntercomWizard 
+          onClose={handleWizardClose} 
+          onComplete={handleWizardComplete} 
+        />
+      )}
+      {activeWizard === 'shared-inbox' && (
+        <EmailWizard 
+          onClose={handleWizardClose} 
+          onComplete={handleWizardComplete} 
+        />
+      )}
+      {activeWizard === 'website-form' && (
+        <WebsiteFormWizard 
           onClose={handleWizardClose} 
           onComplete={handleWizardComplete} 
         />

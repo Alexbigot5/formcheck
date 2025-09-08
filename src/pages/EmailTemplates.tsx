@@ -13,7 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, TrendingUp, Eye, MousePointer, Reply, Plus, Save, Trash2, Edit3 } from "lucide-react";
+import { Mail, TrendingUp, Eye, MousePointer, Reply, Plus, Save, Trash2, Edit3, Send } from "lucide-react";
+import { SendEmailDialog } from "@/components/SendEmailDialog";
 
 const segments = ["hot", "warm", "cold"] as const;
 
@@ -93,6 +94,7 @@ const EmailTemplates: React.FC = () => {
   const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [newTemplateName, setNewTemplateName] = useState<string>("");
+  const [sendEmailOpen, setSendEmailOpen] = useState(false);
 
   // Mock performance stats for each segment
   const mockPerformanceStats: Record<Segment, PerformanceStats> = {
@@ -417,6 +419,10 @@ const EmailTemplates: React.FC = () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="secondary" onClick={() => setTemplates({ ...defaultTemplates })}>Reset</Button>
+                  <Button variant="outline" onClick={() => setSendEmailOpen(true)}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Email
+                  </Button>
                   <Button variant="hero" onClick={saveCurrent}>Save</Button>
                 </div>
               </CardContent>
@@ -530,6 +536,16 @@ const EmailTemplates: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      <SendEmailDialog
+        isOpen={sendEmailOpen}
+        onClose={() => setSendEmailOpen(false)}
+        initialTemplate={{
+          subject: templates[active].subject,
+          body: templates[active].body,
+          segment: active
+        }}
+      />
     </Layout>
   );
 };
