@@ -181,8 +181,9 @@ const Dashboard = () => {
     }
     linkCanonical.setAttribute("href", `${window.location.origin}/dashboard`);
 
-    // Auth guard
-    if (!isAuthenticated) {
+    // Auth guard - only redirect if not in mock auth mode
+    const USE_MOCK_AUTH = import.meta.env.VITE_MOCK_AUTH === 'true';
+    if (!USE_MOCK_AUTH && !isAuthenticated) {
       navigate("/login");
     }
   }, [navigate, isAuthenticated]);

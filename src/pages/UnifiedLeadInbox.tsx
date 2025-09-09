@@ -112,13 +112,20 @@ const UnifiedLeadInbox: React.FC = () => {
     }
     linkCanonical.setAttribute("href", `${window.location.origin}/leads`);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) navigate("/login");
-    });
+    const USE_MOCK_AUTH = import.meta.env.VITE_MOCK_AUTH === 'true';
+    
+    if (USE_MOCK_AUTH) {
+      // Skip auth check in mock mode
+      loadLeads();
+    } else {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!session?.user) navigate("/login");
+      });
 
-    loadLeads();
-
-    return () => subscription.unsubscribe();
+      loadLeads();
+      
+      return () => subscription.unsubscribe();
+    }
   }, [navigate]);
 
   const loadLeads = async () => {
