@@ -71,7 +71,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
 
   // Update form
   app.put('/api/forms/:id', {
-    preHandler: [app.authenticate],
+    preHandler: [authenticateSupabase],
     handler: async (request, reply) => {
       const { id } = request.params as { id: string };
       const user = request.user as { id: string };
@@ -96,7 +96,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
 
   // Delete form
   app.delete('/api/forms/:id', {
-    preHandler: [app.authenticate],
+    preHandler: [authenticateSupabase],
     handler: async (request, reply) => {
       const { id } = request.params as { id: string };
       const user = request.user as { id: string };
