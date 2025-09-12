@@ -37,13 +37,29 @@ declare module 'fastify' {
 }
 
 async function buildServer() {
-  const env = loadEnv();
+  let env;
+  try {
+    env = loadEnv();
+  } catch (error) {
+    console.error('Failed to load environment variables:', error);
+    throw error;
+  }
+  
   const logger = pino({
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
     transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty' } : undefined,
   });
 
   const app = Fastify({ logger });
+  
+  // Log environment info for debugging
+  app.log.info('Starting server with environment:', {
+    NODE_ENV: env.NODE_ENV,
+    PORT: env.PORT,
+    FRONTEND_URL: env.FRONTEND_URL,
+    DATABASE_URL: env.DATABASE_URL ? 'Set' : 'Not set',
+    JWT_SECRET: env.JWT_SECRET ? 'Set' : 'Not set'
+  });
 
   // Configure CORS for frontend origin
   const allowedOrigins = [
@@ -53,12 +69,22 @@ async function buildServer() {
     'http://localhost:5173', // Vite alternative port
   ];
   
-  await app.register(cors, { 
-    origin: env.NODE_ENV === 'development' ? allowedOrigins : [env.FRONTEND_URL],
-    credentials: true,
-  });
-  await app.register(fastifyJwt, { secret: env.JWT_SECRET });
-  await app.register(prismaPlugin);
+  try {
+    await app.register(cors, { 
+      origin: env.NODE_ENV === 'development' ? allowedOrigins : [env.FRONTEND_URL],
+      credentials: true,
+    });
+    app.log.info('CORS plugin registered successfully');
+    
+    await app.register(fastifyJwt, { secret: env.JWT_SECRET });
+    app.log.info('JWT plugin registered successfully');
+    
+    await app.register(prismaPlugin);
+    app.log.info('Prisma plugin registered successfully');
+  } catch (error) {
+    app.log.error('Failed to register core plugins:', error);
+    throw error;
+  }
 
   // Register routes
   await registerHealthRoutes(app);
