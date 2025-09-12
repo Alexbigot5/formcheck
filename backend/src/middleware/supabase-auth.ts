@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnv } from '../config/env';
 
+// Version 2.1 - Fixed lazy loading of Supabase client
+
 // Lazy load environment and supabase client
 let supabase: ReturnType<typeof createClient> | null = null;
 

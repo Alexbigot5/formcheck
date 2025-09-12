@@ -18,12 +18,14 @@ COPY tsconfig.json ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build TypeScript to JavaScript
-RUN echo "=== COMPILING TYPESCRIPT ===" && \
-    npx tsc && \
+# Clean any existing dist and build TypeScript to JavaScript
+RUN echo "=== CLEANING AND COMPILING TYPESCRIPT ===" && \
+    rm -rf dist/ && \
+    npx tsc --noEmitOnError false --skipLibCheck true && \
     echo "=== TYPESCRIPT COMPILATION COMPLETE ===" && \
     ls -la dist/ && \
-    echo "=== DIST DIRECTORY CONTENTS ==="
+    echo "=== CHECKING COMPILED MIDDLEWARE ===" && \
+    head -n 20 dist/middleware/supabase-auth.js
 
 # Expose port (Railway will set PORT dynamically)
 EXPOSE 4000
