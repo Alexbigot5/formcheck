@@ -1,10 +1,4 @@
-# Ignore frontend files to prevent Bun detection
-src/
-public/
-dist/
+# Only ignore what's absolutely necessary
 node_modules/
-package.json
-package-lock.json
-tsconfig.app.json
-tsconfig.node.json
-!backend/
+.git/
+dist/
