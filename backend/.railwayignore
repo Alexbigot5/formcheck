@@ -1,0 +1,27 @@
+# Ignore test files and development files
+src/**/__tests__/**
+src/**/*.test.ts
+src/**/*.spec.ts
+**/*.test.js
+**/*.spec.js
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore development files
+.env.local
+.env.development
+
+# Ignore documentation
+*.md
+docs/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (will be installed fresh)
+node_modules/

@@ -1,22 +1,33 @@
 FROM node:18-alpine
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
-# Copy package files
+# Copy package files first
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Install all dependencies (including dev dependencies for tsx)
+# Install dependencies
 RUN npm ci
 
-# Generate Prisma client
-RUN npx prisma generate
+# Copy prisma schema
+COPY prisma ./prisma/
 
 # Copy source code
 COPY . .
 
-# Expose port (Railway uses PORT env var)
+# Generate Prisma client
+RUN npx prisma generate
+
+# Create a simple entrypoint script
+RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
+    echo 'echo "Starting SmartForms Backend..."' >> /app/entrypoint.sh && \
+    echo 'exec npx tsx src/server.ts' >> /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
+
+# Expose port
 EXPOSE $PORT
 
-# Start the application
-CMD ["npm", "start"]
+# Use the entrypoint script
+CMD ["/app/entrypoint.sh"]
