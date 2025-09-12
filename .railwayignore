@@ -1,0 +1,7 @@
+# Ignore frontend files to prevent Bun detection
+src/
+public/
+dist/
+node_modules/
+*.json
+!backend/
