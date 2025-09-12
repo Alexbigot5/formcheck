@@ -19,10 +19,24 @@ COPY tsconfig.json ./
 RUN npx prisma generate
 
 # Build TypeScript to JavaScript
-RUN npx tsc
+RUN echo "=== COMPILING TYPESCRIPT ===" && \
+    npx tsc && \
+    echo "=== TYPESCRIPT COMPILATION COMPLETE ===" && \
+    ls -la dist/ && \
+    echo "=== DIST DIRECTORY CONTENTS ==="
 
 # Expose port (Railway will set PORT dynamically)
 EXPOSE 4000
 
-# Start with compiled JavaScript instead of tsx
-CMD ["node", "dist/server.js"]
+# Create a startup script with debugging
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'echo "=== CONTAINER STARTING ==="' >> /app/start.sh && \
+    echo 'echo "Node version: $(node --version)"' >> /app/start.sh && \
+    echo 'echo "Environment variables:"' >> /app/start.sh && \
+    echo 'env | grep -E "(NODE_ENV|PORT|DATABASE_URL|JWT_SECRET)" || echo "No relevant env vars found"' >> /app/start.sh && \
+    echo 'echo "Starting Node.js application..."' >> /app/start.sh && \
+    echo 'node dist/server.js' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Start with debugging script
+CMD ["/app/start.sh"]
