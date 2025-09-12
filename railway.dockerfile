@@ -13,6 +13,11 @@ COPY backend/prisma ./prisma/
 
 # Copy source code (excluding test files)
 COPY backend/src ./src/
+
+# Debug: List what's actually in the backend directory
+RUN echo "=== LISTING BACKEND DIRECTORY ===" && \
+    ls -la backend/ || echo "backend directory not found"
+
 COPY backend/tsconfig.json ./
 
 # Generate Prisma client
