@@ -18,8 +18,11 @@ COPY tsconfig.json ./
 # Generate Prisma client
 RUN npx prisma generate
 
+# Build TypeScript to JavaScript
+RUN npx tsc
+
 # Expose port (Railway will set PORT dynamically)
 EXPOSE 4000
 
-# Start server directly - let the application handle database connection
-CMD ["npx", "tsx", "src/server.ts"]
+# Start with compiled JavaScript instead of tsx
+CMD ["node", "dist/server.js"]
