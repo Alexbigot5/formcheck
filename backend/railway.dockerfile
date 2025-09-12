@@ -15,9 +15,6 @@ RUN npx prisma generate
 # Copy source code
 COPY . .
 
-# Build the application (just echo for now)
-RUN npm run build
-
 # Expose port (Railway uses PORT env var)
 EXPOSE $PORT
 
