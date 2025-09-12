@@ -415,7 +415,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Analytics overview failed:', error);
+      app.log.error('Analytics overview failed:', error as any);
       return reply.code(500).send({
         success: false,
         error: 'Failed to generate analytics overview'

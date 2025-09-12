@@ -80,7 +80,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: overview });
 
     } catch (error) {
-      app.log.error('Failed to get dashboard overview:', error);
+      app.log.error('Failed to get dashboard overview:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to get dashboard overview' });
     }
   });
@@ -160,7 +160,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: pipeline });
 
     } catch (error) {
-      app.log.error('Failed to get pipeline data:', error);
+      app.log.error('Failed to get pipeline data:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to get pipeline data' });
     }
   });
@@ -220,7 +220,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: performance });
 
     } catch (error) {
-      app.log.error('Failed to get performance metrics:', error);
+      app.log.error('Failed to get performance metrics:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to get performance metrics' });
     }
   });
@@ -305,7 +305,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: integrationsStatus });
 
     } catch (error) {
-      app.log.error('Failed to get integrations status:', error);
+      app.log.error('Failed to get integrations status:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to get integrations status' });
     }
   });
@@ -352,7 +352,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to get recent leads:', error);
+      app.log.error('Failed to get recent leads:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to get recent leads' });
     }
   });

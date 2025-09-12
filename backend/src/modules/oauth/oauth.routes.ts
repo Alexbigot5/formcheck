@@ -67,7 +67,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
       return reply.redirect(302, authUrl.toString());
 
     } catch (error) {
-      app.log.error('HubSpot OAuth start failed:', error);
+      app.log.error('HubSpot OAuth start failed:', error as any);
       return reply.code(500).send({ error: 'Failed to start HubSpot OAuth' });
     }
   });
@@ -120,7 +120,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
       return reply.redirect(302, authUrl.toString());
 
     } catch (error) {
-      app.log.error('Salesforce OAuth start failed:', error);
+      app.log.error('Salesforce OAuth start failed:', error as any);
       return reply.code(500).send({ error: 'Failed to start Salesforce OAuth' });
     }
   });
@@ -234,7 +234,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('HubSpot OAuth callback failed:', error);
+      app.log.error('HubSpot OAuth callback failed:', error as any);
       return reply.code(500).send({ error: 'Failed to complete HubSpot OAuth' });
     }
   });
@@ -358,7 +358,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Salesforce OAuth callback failed:', error);
+      app.log.error('Salesforce OAuth callback failed:', error as any);
       return reply.code(500).send({ error: 'Failed to complete Salesforce OAuth' });
     }
   });

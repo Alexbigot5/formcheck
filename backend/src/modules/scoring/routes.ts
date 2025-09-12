@@ -95,7 +95,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: { config, rules } });
 
     } catch (error) {
-      app.log.error('Failed to get scoring config:', error);
+      app.log.error('Failed to get scoring config:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to get scoring configuration' });
     }
   });
@@ -129,7 +129,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to update scoring config:', error);
+      app.log.error('Failed to update scoring config:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to update scoring configuration' });
     }
   });
@@ -162,7 +162,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: result });
 
     } catch (error) {
-      app.log.error('Scoring test failed:', error);
+      app.log.error('Scoring test failed:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to test scoring' });
     }
   });
@@ -195,7 +195,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to create scoring rule:', error);
+      app.log.error('Failed to create scoring rule:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to create scoring rule' });
     }
   });
@@ -222,7 +222,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to update scoring rule:', error);
+      app.log.error('Failed to update scoring rule:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to update scoring rule' });
     }
   });
@@ -245,7 +245,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to delete scoring rule:', error);
+      app.log.error('Failed to delete scoring rule:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to delete scoring rule' });
     }
   });
@@ -270,7 +270,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to initialize scoring config:', error);
+      app.log.error('Failed to initialize scoring config:', error as any);
       return reply.code(500).send({ ok: false, error: 'Failed to initialize scoring configuration' });
     }
   });

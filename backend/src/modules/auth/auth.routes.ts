@@ -74,7 +74,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Login error:', error);
+      app.log.error('Login error:', error as any);
       return reply.sendError('Login failed', 500);
     }
   });
@@ -147,7 +147,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       }, 201);
 
     } catch (error) {
-      app.log.error('Registration error:', error);
+      app.log.error('Registration error:', error as any);
       return reply.sendError('Registration failed', 500);
     }
   });
@@ -200,7 +200,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       }, 201);
 
     } catch (error) {
-      app.log.error('Failed to create API key:', error);
+      app.log.error('Failed to create API key:', error as any);
       return reply.sendError('Failed to create API key', 500);
     }
   });
@@ -249,7 +249,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to list API keys:', error);
+      app.log.error('Failed to list API keys:', error as any);
       return reply.sendError('Failed to list API keys', 500);
     }
   });
@@ -291,7 +291,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       return reply.sendSuccess({ message: 'API key deleted successfully' });
 
     } catch (error) {
-      app.log.error('Failed to delete API key:', error);
+      app.log.error('Failed to delete API key:', error as any);
       return reply.sendError('Failed to delete API key', 500);
     }
   });

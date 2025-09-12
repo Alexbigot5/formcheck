@@ -88,7 +88,7 @@ export async function registerSupabaseAuthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Token verification error:', error);
+      app.log.error('Token verification error:', error as any);
       return reply.code(500).send({ ok: false, error: 'Verification failed' });
     }
   });
@@ -147,7 +147,7 @@ export async function registerSupabaseAuthRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Profile update error:', error);
+      app.log.error('Profile update error:', error as any);
       return reply.code(500).send({ ok: false, error: 'Profile update failed' });
     }
   });

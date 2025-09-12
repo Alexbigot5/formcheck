@@ -217,12 +217,12 @@ async function logDedupeDecision(
         action: `dedupe_${data.action}`,
         after: {
           decision: data.decision,
-          keys: data.keys,
+          keys: JSON.parse(JSON.stringify(data.keys)),
           mergedLeadId: data.mergedLeadId,
           consolidatedMessages: data.consolidatedMessages,
           consolidatedEvents: data.consolidatedEvents,
           error: data.error
-        }
+        } as any
       }
     });
 
@@ -234,11 +234,11 @@ async function logDedupeDecision(
         payload: {
           action: 'deduplication',
           decision: data.decision,
-          keys: data.keys,
+          keys: JSON.parse(JSON.stringify(data.keys)),
           mergedLeadId: data.mergedLeadId,
           consolidatedMessages: data.consolidatedMessages,
           consolidatedEvents: data.consolidatedEvents
-        }
+        } as any
       }
     });
 

@@ -466,7 +466,7 @@ async function getAnyAvailableOwner(
 
     return owner ? { id: owner.id } : null;
   } catch (error) {
-    app.log.error('Failed to get available owner:', error);
+    app.log.error('Failed to get available owner:', error as any);
     return null;
   }
 }

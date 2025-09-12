@@ -195,7 +195,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Lead creation failed:', error);
+      app.log.error('Lead creation failed:', error as any);
       return reply.code(500).send({ error: 'Failed to create lead' });
     }
   });
@@ -365,7 +365,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to list leads:', error);
+      app.log.error('Failed to list leads:', error as any);
       return reply.code(500).send({ error: 'Failed to list leads' });
     }
   });
@@ -410,7 +410,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       return reply.send(lead);
 
     } catch (error) {
-      app.log.error('Failed to get lead:', error);
+      app.log.error('Failed to get lead:', error as any);
       return reply.code(500).send({ error: 'Failed to get lead' });
     }
   });
@@ -560,7 +560,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to get timeline:', error);
+      app.log.error('Failed to get timeline:', error as any);
       return reply.code(500).send({ error: 'Failed to get timeline' });
     }
   });
@@ -614,7 +614,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       return reply.send(updatedLead);
 
     } catch (error) {
-      app.log.error('Failed to update lead:', error);
+      app.log.error('Failed to update lead:', error as any);
       return reply.code(500).send({ error: 'Failed to update lead' });
     }
   });
@@ -642,7 +642,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       return reply.send(analysis);
 
     } catch (error) {
-      app.log.error('Duplicate analysis failed:', error);
+      app.log.error('Duplicate analysis failed:', error as any);
       return reply.code(500).send({ error: 'Failed to analyze duplicates' });
     }
   });
@@ -665,7 +665,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       return reply.send(preview);
 
     } catch (error) {
-      app.log.error('Merge preview failed:', error);
+      app.log.error('Merge preview failed:', error as any);
       return reply.code(500).send({ error: 'Failed to preview merge' });
     }
   });
@@ -712,7 +712,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       return reply.send(event);
 
     } catch (error) {
-      app.log.error('Failed to create timeline event:', error);
+      app.log.error('Failed to create timeline event:', error as any);
       return reply.code(500).send({ error: 'Failed to create timeline event' });
     }
   });
@@ -788,7 +788,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to update lead score:', error);
+      app.log.error('Failed to update lead score:', error as any);
       return reply.code(500).send({ error: 'Failed to update lead score' });
     }
   });
@@ -886,7 +886,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to assign lead:', error);
+      app.log.error('Failed to assign lead:', error as any);
       return reply.code(500).send({ error: 'Failed to assign lead' });
     }
   });
@@ -1000,7 +1000,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to create message:', error);
+      app.log.error('Failed to create message:', error as any);
       return reply.code(500).send({ error: 'Failed to create message' });
     }
   });
@@ -1081,7 +1081,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to delete lead:', error);
+      app.log.error('Failed to delete lead:', error as any);
       return reply.code(500).send({ error: 'Failed to delete lead' });
     }
   });

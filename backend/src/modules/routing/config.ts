@@ -23,7 +23,7 @@ export async function getRoutingRules(
       order: rule.order
     }));
   } catch (error) {
-    app.log.error('Failed to get routing rules:', error);
+    app.log.error('Failed to get routing rules:', error as any);
     return [];
   }
 }
@@ -55,7 +55,7 @@ export async function upsertRoutingRule(
       order: newRule.order
     };
   } catch (error) {
-    app.log.error('Failed to upsert routing rule:', error);
+    app.log.error('Failed to upsert routing rule:', error as any);
     throw new Error('Failed to save routing rule');
   }
 }
@@ -88,7 +88,7 @@ export async function updateRoutingRule(
       order: updatedRule.order
     };
   } catch (error) {
-    app.log.error('Failed to update routing rule:', error);
+    app.log.error('Failed to update routing rule:', error as any);
     throw new Error('Failed to update routing rule');
   }
 }
@@ -106,7 +106,7 @@ export async function deleteRoutingRule(
       where: { id: ruleId, teamId }
     });
   } catch (error) {
-    app.log.error('Failed to delete routing rule:', error);
+    app.log.error('Failed to delete routing rule:', error as any);
     throw new Error('Failed to delete routing rule');
   }
 }
@@ -128,7 +128,7 @@ export async function reorderRoutingRules(
       });
     }
   } catch (error) {
-    app.log.error('Failed to reorder routing rules:', error);
+    app.log.error('Failed to reorder routing rules:', error as any);
     throw new Error('Failed to reorder routing rules');
   }
 }
@@ -253,7 +253,7 @@ export async function initializeDefaultRoutingRules(
 
     return rules;
   } catch (error) {
-    app.log.error('Failed to initialize default routing rules:', error);
+    app.log.error('Failed to initialize default routing rules:', error as any);
     throw new Error('Failed to initialize routing rules');
   }
 }
@@ -370,7 +370,7 @@ export async function getOwnerPools(
 
     return pools;
   } catch (error) {
-    app.log.error('Failed to get owner pools:', error);
+    app.log.error('Failed to get owner pools:', error as any);
     return [];
   }
 }
@@ -432,7 +432,7 @@ export async function getRoutingStats(
       avgRoutingTime
     };
   } catch (error) {
-    app.log.error('Failed to get routing stats:', error);
+    app.log.error('Failed to get routing stats:', error as any);
     return {
       totalLeads: 0,
       routedLeads: 0,

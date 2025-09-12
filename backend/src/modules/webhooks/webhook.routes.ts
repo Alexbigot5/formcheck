@@ -33,7 +33,7 @@ export async function registerWebhookRoutes(app: FastifyInstance) {
       app.log.info('Webhook received:', {
         event: payload.event,
         timestamp: payload.timestamp || Date.now()
-      });
+      } as any);
 
       // TODO: Process webhook based on event type
       // This is where you'd implement lead creation, CRM sync, etc.
@@ -58,7 +58,7 @@ export async function registerWebhookRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Webhook processing failed:', error);
+      app.log.error('Webhook processing failed:', error as any);
       return reply.code(500).send({ error: 'Webhook processing failed' });
     }
   });
@@ -95,7 +95,7 @@ export async function registerWebhookRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Form webhook processing failed:', error);
+      app.log.error('Form webhook processing failed:', error as any);
       return reply.code(500).send({ error: 'Form processing failed' });
     }
   });
@@ -103,7 +103,7 @@ export async function registerWebhookRoutes(app: FastifyInstance) {
 
 // Helper functions for webhook processing
 async function handleLeadCreated(app: FastifyInstance, data: any) {
-  app.log.info('Processing lead.created webhook:', data);
+  app.log.info('Processing lead.created webhook:', data as any);
   // TODO: Implement lead creation logic
 }
 
@@ -176,7 +176,7 @@ async function createLeadFromForm(
 
     return lead.id;
   } catch (error) {
-    app.log.error('Error creating lead from form:', error);
+    app.log.error('Error creating lead from form:', error as any);
     throw error;
   }
 }
@@ -216,11 +216,11 @@ async function calculateLeadScore(
 }
 
 async function handleFormSubmitted(app: FastifyInstance, data: any) {
-  app.log.info('Processing form.submitted webhook:', data);
+  app.log.info('Processing form.submitted webhook:', data as any);
   // TODO: Implement form submission logic
 }
 
 async function handleCrmContactUpdated(app: FastifyInstance, data: any) {
-  app.log.info('Processing crm.contact.updated webhook:', data);
+  app.log.info('Processing crm.contact.updated webhook:', data as any);
   // TODO: Implement CRM sync logic
 }

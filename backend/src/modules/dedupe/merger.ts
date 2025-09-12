@@ -140,7 +140,7 @@ export async function mergeLeads(
           newScore: finalScore,
           consolidatedMessages,
           consolidatedEvents,
-          mergeStrategy: strategy
+          mergeStrategy: JSON.parse(JSON.stringify(strategy))
         }
       }
     });

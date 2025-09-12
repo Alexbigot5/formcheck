@@ -89,7 +89,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       return reply.send(result);
 
     } catch (error) {
-      app.log.error('Routing test failed:', error);
+      app.log.error('Routing test failed:', error as any);
       return reply.code(500).send({ error: 'Failed to test routing' });
     }
   });
@@ -113,7 +113,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       return reply.send({ rules });
 
     } catch (error) {
-      app.log.error('Failed to get routing rules:', error);
+      app.log.error('Failed to get routing rules:', error as any);
       return reply.code(500).send({ error: 'Failed to get routing rules' });
     }
   });
@@ -153,7 +153,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to create routing rule:', error);
+      app.log.error('Failed to create routing rule:', error as any);
       return reply.code(500).send({ error: 'Failed to create routing rule' });
     }
   });
@@ -199,7 +199,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to update routing rule:', error);
+      app.log.error('Failed to update routing rule:', error as any);
       return reply.code(500).send({ error: 'Failed to update routing rule' });
     }
   });
@@ -230,7 +230,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to delete routing rule:', error);
+      app.log.error('Failed to delete routing rule:', error as any);
       return reply.code(500).send({ error: 'Failed to delete routing rule' });
     }
   });
@@ -261,7 +261,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to reorder routing rules:', error);
+      app.log.error('Failed to reorder routing rules:', error as any);
       return reply.code(500).send({ error: 'Failed to reorder routing rules' });
     }
   });
@@ -290,7 +290,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to initialize routing rules:', error);
+      app.log.error('Failed to initialize routing rules:', error as any);
       return reply.code(500).send({ error: 'Failed to initialize routing rules' });
     }
   });
@@ -392,7 +392,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to get owners:', error);
+      app.log.error('Failed to get owners:', error as any);
       return reply.code(500).send({ error: 'Failed to get owners' });
     }
   });
@@ -420,7 +420,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       return reply.send({ pools });
 
     } catch (error) {
-      app.log.error('Failed to get owner pools:', error);
+      app.log.error('Failed to get owner pools:', error as any);
       return reply.code(500).send({ error: 'Failed to get owner pools' });
     }
   });
@@ -452,7 +452,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       return reply.send(stats);
 
     } catch (error) {
-      app.log.error('Failed to get routing stats:', error);
+      app.log.error('Failed to get routing stats:', error as any);
       return reply.code(500).send({ error: 'Failed to get routing stats' });
     }
   });
@@ -497,7 +497,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       return reply.send({ results });
 
     } catch (error) {
-      app.log.error('Batch routing test failed:', error);
+      app.log.error('Batch routing test failed:', error as any);
       return reply.code(500).send({ error: 'Failed to test batch routing' });
     }
   });
@@ -576,7 +576,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to get SLA settings:', error);
+      app.log.error('Failed to get SLA settings:', error as any);
       return reply.code(500).send({ error: 'Failed to get SLA settings' });
     }
   });
@@ -642,7 +642,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to save SLA settings:', error);
+      app.log.error('Failed to save SLA settings:', error as any);
       return reply.code(500).send({ error: 'Failed to save SLA settings' });
     }
   });
@@ -744,7 +744,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       });
 
     } catch (error) {
-      app.log.error('Failed to test SLA:', error);
+      app.log.error('Failed to test SLA:', error as any);
       return reply.code(500).send({ error: 'Failed to test SLA' });
     }
   });

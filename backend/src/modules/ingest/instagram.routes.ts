@@ -212,7 +212,7 @@ export async function registerInstagramRoutes(app: FastifyInstance) {
               username: dmPayload.sender.username,
               messageType: dmPayload.message.type,
               isFirstMessage: dmPayload.isFirstMessage,
-              enrichment: enrichedLead,
+              enrichment: JSON.parse(JSON.stringify(enrichedLead)),
               source: 'instagram_dm'
             }
           }
@@ -228,7 +228,7 @@ export async function registerInstagramRoutes(app: FastifyInstance) {
               score: scoringResult.score,
               band: scoringResult.band,
               tags: scoringResult.tags,
-              trace: scoringResult.trace
+              trace: JSON.parse(JSON.stringify(scoringResult.trace))
             }
           }
         }),

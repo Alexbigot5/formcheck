@@ -28,7 +28,7 @@ export async function getScoringConfig(
       version: config.version
     };
   } catch (error) {
-    app.log.error('Failed to get scoring config:', error);
+    app.log.error('Failed to get scoring config:', error as any);
     return null;
   }
 }
@@ -55,7 +55,7 @@ export async function getScoringRules(
       order: rule.order
     }));
   } catch (error) {
-    app.log.error('Failed to get scoring rules:', error);
+    app.log.error('Failed to get scoring rules:', error as any);
     return [];
   }
 }
@@ -127,12 +127,12 @@ export async function upsertScoringConfig(
       });
     } catch (auditError) {
       // Don't fail the main operation if audit logging fails
-      app.log.warn('Failed to log scoring config audit:', auditError);
+      app.log.warn('Failed to log scoring config audit:', auditError as any);
     }
 
     return configResult;
   } catch (error) {
-    app.log.error('Failed to upsert scoring config:', error);
+    app.log.error('Failed to upsert scoring config:', error as any);
     throw new Error('Failed to save scoring configuration');
   }
 }
@@ -165,7 +165,7 @@ export async function upsertScoringRule(
       order: newRule.order
     };
   } catch (error) {
-    app.log.error('Failed to upsert scoring rule:', error);
+    app.log.error('Failed to upsert scoring rule:', error as any);
     throw new Error('Failed to save scoring rule');
   }
 }
@@ -258,7 +258,7 @@ export async function initializeDefaultScoringConfig(
 
     return { config, rules };
   } catch (error) {
-    app.log.error('Failed to initialize default scoring config:', error);
+    app.log.error('Failed to initialize default scoring config:', error as any);
     throw new Error('Failed to initialize scoring configuration');
   }
 }
@@ -287,7 +287,7 @@ export async function updateScoringRule(
       order: updatedRule.order
     };
   } catch (error) {
-    app.log.error('Failed to update scoring rule:', error);
+    app.log.error('Failed to update scoring rule:', error as any);
     throw new Error('Failed to update scoring rule');
   }
 }
@@ -305,7 +305,7 @@ export async function deleteScoringRule(
       where: { id: ruleId, teamId }
     });
   } catch (error) {
-    app.log.error('Failed to delete scoring rule:', error);
+    app.log.error('Failed to delete scoring rule:', error as any);
     throw new Error('Failed to delete scoring rule');
   }
 }
@@ -327,7 +327,7 @@ export async function reorderScoringRules(
       });
     }
   } catch (error) {
-    app.log.error('Failed to reorder scoring rules:', error);
+    app.log.error('Failed to reorder scoring rules:', error as any);
     throw new Error('Failed to reorder scoring rules');
   }
 }
@@ -357,7 +357,7 @@ export async function getScoringConfigHistory(
       version: config.version
     }));
   } catch (error) {
-    app.log.error('Failed to get scoring config history:', error);
+    app.log.error('Failed to get scoring config history:', error as any);
     return [];
   }
 }
