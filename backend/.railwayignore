@@ -23,5 +23,9 @@ docs/
 *.swp
 *.swo
 
+# Ignore demo and seed scripts that might auto-run
+src/scripts/test-demo.ts
+src/scripts/seed.ts
+
 # Node modules (will be installed fresh)
 node_modules/

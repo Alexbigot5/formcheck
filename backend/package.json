@@ -19,8 +19,7 @@
     "test:coverage": "vitest --coverage",
     "test:scoring": "vitest src/modules/scoring/__tests__",
     "test:routing": "vitest src/modules/routing/__tests__",
-    "test:dedupe": "vitest src/modules/dedupe/__tests__",
-    "demo": "tsx src/scripts/test-demo.ts"
+    "test:dedupe": "vitest src/modules/dedupe/__tests__"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
