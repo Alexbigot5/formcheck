@@ -13,4 +13,3 @@ coverage
 README.md
 .eslintrc*
 .prettierrc*
-tsconfig.json
