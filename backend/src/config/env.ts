@@ -40,12 +40,25 @@ const EnvSchema = z.object({
 export type Env = z.infer<typeof EnvSchema>;
 
 export function loadEnv(): Env {
+  console.log('=== LOADING ENVIRONMENT VARIABLES ===');
+  console.log('Available env vars:', Object.keys(process.env).filter(key => 
+    key.includes('DATABASE') || key.includes('JWT') || key.includes('SECRET') || 
+    key.includes('PORT') || key.includes('NODE_ENV') || key.includes('SUPABASE')
+  ));
+  
   const parsed = EnvSchema.safeParse(process.env);
   if (!parsed.success) {
-    // eslint-disable-next-line no-console
-    console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
+    console.error('=== ENVIRONMENT VALIDATION FAILED ===');
+    console.error('Errors:', JSON.stringify(parsed.error.flatten().fieldErrors, null, 2));
+    console.error('Raw process.env sample:', {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT SET',
+      JWT_SECRET: process.env.JWT_SECRET ? 'SET' : 'NOT SET'
+    });
     throw new Error('Invalid environment configuration');
   }
+  console.log('=== ENVIRONMENT LOADED SUCCESSFULLY ===');
   return parsed.data;
 }
 

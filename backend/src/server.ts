@@ -134,12 +134,24 @@ async function buildServer() {
 }
 
 async function start() {
-  const { app, env } = await buildServer();
+  console.log('=== STARTING SERVER ===');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('PORT:', process.env.PORT);
+  console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+  console.log('JWT_SECRET set:', !!process.env.JWT_SECRET);
+  
   try {
+    console.log('Building server...');
+    const { app, env } = await buildServer();
+    console.log('Server built successfully, starting to listen...');
+    
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
+    console.log(`=== SERVER STARTED ON PORT ${env.PORT} ===`);
     app.log.info(`Server listening on port ${env.PORT}`);
   } catch (err) {
-    app.log.error(err);
+    console.error('=== SERVER STARTUP FAILED ===');
+    console.error('Error:', err);
+    console.error('Stack:', err.stack);
     process.exit(1);
   }
 }
