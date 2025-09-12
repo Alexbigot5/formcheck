@@ -18,14 +18,10 @@ COPY backend/tsconfig.json ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# Clean any existing dist and build TypeScript to JavaScript
-RUN echo "=== CLEANING AND COMPILING TYPESCRIPT ===" && \
-    rm -rf dist/ && \
-    npx tsc --noEmitOnError false --skipLibCheck true && \
-    echo "=== TYPESCRIPT COMPILATION COMPLETE ===" && \
-    ls -la dist/ && \
-    echo "=== CHECKING COMPILED MIDDLEWARE ===" && \
-    head -n 20 dist/middleware/supabase-auth.js
+# Skip TypeScript compilation - using tsx for runtime
+RUN echo "=== BACKEND CONFIGURED FOR TSX RUNTIME ===" && \
+    echo "TypeScript files will be run directly with tsx" && \
+    ls -la src/
 
 # Expose port (Railway will set PORT dynamically)
 EXPOSE 4000
@@ -36,8 +32,8 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "Node version: $(node --version)"' >> /app/start.sh && \
     echo 'echo "Environment variables:"' >> /app/start.sh && \
     echo 'env | grep -E "(NODE_ENV|PORT|DATABASE_URL|JWT_SECRET)" || echo "No relevant env vars found"' >> /app/start.sh && \
-    echo 'echo "Starting Node.js application..."' >> /app/start.sh && \
-    echo 'node dist/server.js' >> /app/start.sh && \
+    echo 'echo "Starting Node.js application with tsx..."' >> /app/start.sh && \
+    echo 'npx tsx src/server.ts' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Start with debugging script
