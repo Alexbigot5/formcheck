@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { Lead } from './keys.js';
+import { Lead } from './keys';
 
 export interface MergeResult {
   primaryLeadId: string;

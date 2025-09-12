@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { PrismaClient } from '@prisma/client';
-import { applyScoring, calculateBaseScore, applyRules, determineBand } from '../engine.js';
-import type { ScoringConfig, ScoringRule, Lead } from '../../../types/index.js';
+import { applyScoring, calculateBaseScore, applyRules, determineBand } from '../engine';
+import type { ScoringConfig, ScoringRule, Lead } from '../../../types/index';
 
 // Mock Prisma
 const mockPrisma = {

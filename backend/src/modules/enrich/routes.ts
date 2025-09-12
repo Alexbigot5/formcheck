@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import { 
   enrichLead, 
   batchEnrichLeads, 
@@ -10,7 +10,7 @@ import {
   addCompetitor,
   removeCompetitor,
   getCompetitorStats
-} from './index.js';
+} from './index';
 
 // Schemas
 const enrichLeadSchema = z.object({

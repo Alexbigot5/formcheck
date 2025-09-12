@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
-import { deduplicateLead, analyzeDuplicates, previewMerge } from '../dedupe/index.js';
-import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index.js';
-import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { deduplicateLead, analyzeDuplicates, previewMerge } from '../dedupe/index';
+import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index';
+import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index';
 
 // Validation schemas
 const createLeadSchema = z.object({

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { buildKeys, validateKeys, type Lead, type DedupeKeys } from './keys.js';
-import { findDuplicate, analyzeDuplicates, type DedupePolicy, DEFAULT_DEDUPE_POLICY } from './finder.js';
-import { mergeLeads, selectPrimaryLead, previewMerge, type MergeStrategy, DEFAULT_MERGE_STRATEGY, type MergeResult } from './merger.js';
+import { buildKeys, validateKeys, type Lead, type DedupeKeys } from './keys';
+import { findDuplicate, analyzeDuplicates, type DedupePolicy, DEFAULT_DEDUPE_POLICY } from './finder';
+import { mergeLeads, selectPrimaryLead, previewMerge, type MergeStrategy, DEFAULT_MERGE_STRATEGY, type MergeResult } from './merger';
 
 export interface DedupeResult {
   action: 'created' | 'merged' | 'skipped';

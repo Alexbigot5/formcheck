@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
-import { routeLead, selectOwnerFromPool, checkRuleConditions, evaluateCondition } from '../engine.js';
-import type { RoutingRule, Owner, Lead, RoutingResult } from '../../../types/index.js';
+import { routeLead, selectOwnerFromPool, checkRuleConditions, evaluateCondition } from '../engine';
+import type { RoutingRule, Owner, Lead, RoutingResult } from '../../../types/index';
 
 // Mock Prisma
 const mockPrisma = {

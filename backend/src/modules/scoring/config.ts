@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { ScoringConfig, ScoringRule, getDefaultScoringConfig } from './engine.js';
+import { ScoringConfig, ScoringRule, getDefaultScoringConfig } from './engine';
 
 /**
  * Get active scoring configuration for a team

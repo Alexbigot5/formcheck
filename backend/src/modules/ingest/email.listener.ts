@@ -1,12 +1,12 @@
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import { FastifyInstance } from 'fastify';
-import { loadEnv } from '../../config/env.js';
-import { parseEmailToLead } from './email.parser.js';
-import { deduplicateLead } from '../dedupe/index.js';
-import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index.js';
-import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index.js';
-import { enrichLead } from './enrichment.js';
+import { loadEnv } from '../../config/env';
+import { parseEmailToLead } from './email.parser';
+import { deduplicateLead } from '../dedupe/index';
+import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index';
+import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index';
+import { enrichLead } from './enrichment';
 
 export interface EmailListenerConfig {
   host: string;

@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { webhookAuth } from '../../middleware/auth.js';
-import { deduplicateLead } from '../dedupe/index.js';
-import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index.js';
-import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index.js';
-import { enrichLead } from './enrichment.js';
-import { normalizeWebhookPayload } from './normalizer.js';
+import { webhookAuth } from '../../middleware/auth';
+import { deduplicateLead } from '../dedupe/index';
+import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index';
+import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index';
+import { enrichLead } from './enrichment';
+import { normalizeWebhookPayload } from './normalizer';
 
 // Validation schemas
 const webhookPayloadSchema = z.object({

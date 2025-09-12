@@ -1,5 +1,5 @@
 import { ParsedMail } from 'mailparser';
-import { NormalizedLead } from './normalizer.js';
+import { NormalizedLead } from './normalizer';
 
 /**
  * Parse email to extract lead data

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { encryptCredentials, decryptCredentials } from '../../utils/encryption.js';
+import { encryptCredentials, decryptCredentials } from '../../utils/encryption';
 
 export interface OAuthCredentials {
   accessToken: string;

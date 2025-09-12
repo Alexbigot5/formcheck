@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
-import { loadEnv } from '../config/env.js';
+import { loadEnv } from '../config/env';
 
 const env = loadEnv();
 

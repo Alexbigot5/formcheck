@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 
 export async function registerOAuthRoutes(app: FastifyInstance) {
   // Apply authentication to OAuth start routes

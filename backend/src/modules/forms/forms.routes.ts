@@ -11,7 +11,7 @@ const UpdateFormSchema = z.object({
   schema: z.object({}).passthrough().optional(),
 });
 
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth.js';
+import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
 
 export async function registerFormRoutes(app: FastifyInstance) {
   // Get all forms for authenticated user

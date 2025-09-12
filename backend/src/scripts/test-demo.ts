@@ -5,9 +5,9 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { applyScoring } from '../modules/scoring/engine.js';
-import { routeLead } from '../modules/routing/engine.js';
-import { deduplicateLead } from '../modules/dedupe/index.js';
+import { applyScoring } from '../modules/scoring/engine';
+import { routeLead } from '../modules/routing/engine';
+import { deduplicateLead } from '../modules/dedupe/index';
 
 const prisma = new PrismaClient();
 

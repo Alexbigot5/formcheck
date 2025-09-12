@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { RoutingRule } from './engine.js';
+import { RoutingRule } from './engine';
 
 /**
  * Get routing rules for a team

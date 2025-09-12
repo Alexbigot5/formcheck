@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
-import { NormalizedLead } from './normalizer.js';
-import { deduplicateLead } from '../dedupe/index.js';
-import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index.js';
-import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index.js';
-import { enrichLead } from './enrichment.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { NormalizedLead } from './normalizer';
+import { deduplicateLead } from '../dedupe/index';
+import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index';
+import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index';
+import { enrichLead } from './enrichment';
 
 // Instagram DM payload schema
 const instagramDmSchema = z.object({

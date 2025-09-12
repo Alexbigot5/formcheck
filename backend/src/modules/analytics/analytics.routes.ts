@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 
 // Validation schemas
 const overviewQuerySchema = z.object({

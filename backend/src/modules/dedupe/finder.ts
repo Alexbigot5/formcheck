@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { buildKeys, calculateNameSimilarity, type Lead, type DedupeKeys } from './keys.js';
+import { buildKeys, calculateNameSimilarity, type Lead, type DedupeKeys } from './keys';
 
 export interface DedupePolicy {
   // Matching strategies

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { enrichCompanyData, getCompanyEnrichment, CompanyEnrichmentData } from './company.js';
-import { analyzeMailboxWithTeamSettings, isFreeMailbox, MailboxAnalysis, calculateEmailQualityScore } from './mailbox.js';
-import { analyzeCompanyRelationship, CompetitorAnalysis } from './competitor.js';
+import { enrichCompanyData, getCompanyEnrichment, CompanyEnrichmentData } from './company';
+import { analyzeMailboxWithTeamSettings, isFreeMailbox, MailboxAnalysis, calculateEmailQualityScore } from './mailbox';
+import { analyzeCompanyRelationship, CompetitorAnalysis } from './competitor';
 
 export interface EnrichedLeadData {
   companySize?: string;
@@ -311,8 +311,8 @@ export async function getEnrichmentStats(
 }
 
 // Re-export all enrichment functionality
-export { enrichCompanyData, getCompanyEnrichment } from './company.js';
-export { analyzeMailbox, isFreeMailbox, getMailboxCategory } from './mailbox.js';
+export { enrichCompanyData, getCompanyEnrichment } from './company';
+export { analyzeMailbox, isFreeMailbox, getMailboxCategory } from './mailbox';
 export { 
   analyzeCompetitor, 
   getCompetitorConfig, 
@@ -323,11 +323,11 @@ export {
   isVendorCompany,
   analyzeCompanyRelationship,
   getCompetitorStats
-} from './competitor.js';
-export { registerEnrichmentRoutes } from './routes.js';
+} from './competitor';
+export { registerEnrichmentRoutes } from './routes';
 
 // Re-export types
-export type { CompanyEnrichmentData } from './company.js';
-export type { MailboxAnalysis } from './mailbox.js';
-export type { CompetitorAnalysis, CompetitorConfig, CompetitorEntry } from './competitor.js';
+export type { CompanyEnrichmentData } from './company';
+export type { MailboxAnalysis } from './mailbox';
+export type { CompetitorAnalysis, CompetitorConfig, CompetitorEntry } from './competitor';
 export type { EnrichedLeadData, LeadToEnrich };

@@ -24,9 +24,13 @@ import {
   Webhook
 } from "lucide-react";
 import { getSourceConfig } from "@/lib/sourceMapping";
+import { WebsiteFormWizard } from "@/components/source-wizards/WebsiteFormWizard";
+import { EmailWizard } from "@/components/source-wizards/EmailWizard";
+import { toast } from "sonner";
 
 const SourcesWizardSimple = () => {
   const [attributionMode, setAttributionMode] = useState<'first-touch' | 'last-touch' | 'multi-touch'>('first-touch');
+  const [activeWizard, setActiveWizard] = useState<string | null>(null);
 
   // Lead stats will be loaded from API when available
   const leadStats: Array<{
@@ -52,6 +56,24 @@ const SourcesWizardSimple = () => {
     leads: item.leads,
     fill: item.color
   }));
+
+  // Handler functions for wizard management
+  const handleConnect = (sourceId: string) => {
+    if (['website-form', 'shared-inbox'].includes(sourceId)) {
+      setActiveWizard(sourceId);
+    } else {
+      toast.success("Source connected successfully!");
+    }
+  };
+
+  const handleWizardComplete = (sourceId: string) => {
+    setActiveWizard(null);
+    toast.success("Source connected successfully!");
+  };
+
+  const handleWizardClose = () => {
+    setActiveWizard(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -177,7 +199,7 @@ const SourcesWizardSimple = () => {
             <p className="text-xs text-muted-foreground mb-3">
               Embed forms on your website to capture visitor information
             </p>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => handleConnect('website-form')}>
               Configure
             </Button>
           </CardContent>
@@ -199,7 +221,7 @@ const SourcesWizardSimple = () => {
             <p className="text-xs text-muted-foreground mb-3">
               Connect email accounts to automatically process lead emails
             </p>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => handleConnect('shared-inbox')}>
               Setup
             </Button>
           </CardContent>
@@ -403,6 +425,20 @@ const SourcesWizardSimple = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Wizard Components */}
+      {activeWizard === 'website-form' && (
+        <WebsiteFormWizard 
+          onClose={handleWizardClose} 
+          onComplete={handleWizardComplete} 
+        />
+      )}
+      {activeWizard === 'shared-inbox' && (
+        <EmailWizard 
+          onClose={handleWizardClose} 
+          onComplete={handleWizardComplete} 
+        />
+      )}
     </div>
   );
 };

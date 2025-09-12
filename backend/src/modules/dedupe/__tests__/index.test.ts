@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
-import { deduplicateLead, findDuplicates, calculateSimilarity } from '../index.js';
-import { buildKeys } from '../keys.js';
-import { mergeLeads } from '../merger.js';
-import type { Lead, DedupeKeys, DedupeResult } from '../../../types/index.js';
+import { deduplicateLead, findDuplicates, calculateSimilarity } from '../index';
+import { buildKeys } from '../keys';
+import { mergeLeads } from '../merger';
+import type { Lead, DedupeKeys, DedupeResult } from '../../../types/index';
 
 // Mock Prisma
 const mockPrisma = {

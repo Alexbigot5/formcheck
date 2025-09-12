@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
-import { routeLead, type Lead, type RoutingResult } from './engine.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { routeLead, type Lead, type RoutingResult } from './engine';
 import { 
   getRoutingRules, 
   upsertRoutingRule, 
@@ -12,7 +12,7 @@ import {
   initializeDefaultRoutingRules,
   getOwnerPools,
   getRoutingStats
-} from './config.js';
+} from './config';
 
 // Validation schemas
 const testRoutingSchema = z.object({

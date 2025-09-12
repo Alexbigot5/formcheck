@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth.js';
-import { loadEnv } from '../../config/env.js';
+import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
+import { loadEnv } from '../../config/env';
 
 const env = loadEnv();
 

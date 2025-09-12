@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth.js';
+import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
 import { 
   getScoringConfig, 
   getScoringRules, 
@@ -13,8 +13,8 @@ import {
   getScoringConfigHistory,
   validateScoringConfig,
   validateScoringRule
-} from './config.js';
-import { applyScoring, getDefaultScoringConfig, type Lead } from './engine.js';
+} from './config';
+import { applyScoring, getDefaultScoringConfig, type Lead } from './engine';
 
 // Validation schemas
 const testScoringSchema = z.object({

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { webhookAuth } from '../../middleware/auth.js';
+import { webhookAuth } from '../../middleware/auth';
 
 // Validation schemas
 const webhookPayloadSchema = z.object({

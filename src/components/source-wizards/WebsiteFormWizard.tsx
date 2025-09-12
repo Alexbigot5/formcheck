@@ -44,6 +44,54 @@ export const WebsiteFormWizard: React.FC<WebsiteFormWizardProps> = ({
     setEmbedCode(code);
   }, [formConfig]);
 
+  const generateSimpleScript = () => {
+    return `<!-- SmartForms Lead Tracking - Paste this anywhere on your page -->
+<script>
+(function() {
+  // 🔧 CHANGE THIS LINE to match your form
+  const form = document.querySelector('#contact-form');
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      // Your form still submits normally - this just adds tracking
+      
+      // Collect form data
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Add page tracking info
+      data.source = 'website_form';
+      data.page_url = window.location.href;
+      data.page_title = document.title;
+      data.referrer = document.referrer;
+      
+      // Capture UTM parameters automatically
+      const urlParams = new URLSearchParams(window.location.search);
+      data.utm_source = urlParams.get('utm_source') || '';
+      data.utm_medium = urlParams.get('utm_medium') || '';
+      data.utm_campaign = urlParams.get('utm_campaign') || '';
+      
+      // Send to SmartForms (non-blocking)
+      fetch('${webhookUrl}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'form.submitted',
+          source: 'website_form',
+          timestamp: Date.now(),
+          ...data
+        })
+      }).catch(function(error) {
+        console.log('SmartForms tracking failed (form still works):', error);
+      });
+    });
+  } else {
+    console.log('SmartForms: Form not found. Update the selector in the script.');
+  }
+})();
+</script>`;
+  };
+
   const generateEmbedCode = (formId: string, webhookUrl: string, config: typeof formConfig) => {
     return `<!-- SmartForms AI Lead Capture Form -->
 <div id="${formId}" class="smartforms-embed"></div>
@@ -218,12 +266,139 @@ export const WebsiteFormWizard: React.FC<WebsiteFormWizardProps> = ({
           </p>
         </div>
 
-        <Tabs defaultValue="configure" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="configure">Configure</TabsTrigger>
+        <Tabs defaultValue="existing" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="existing">Connect Existing</TabsTrigger>
+            <TabsTrigger value="configure">Create New</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
             <TabsTrigger value="embed">Embed Code</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="existing" className="space-y-4">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold mb-2">Connect Your Existing Form</h3>
+              <p className="text-sm text-muted-foreground">
+                Keep your current form exactly as it is - just add our tracking code
+              </p>
+            </div>
+
+            <WizardStep number={1} title="Copy Your Webhook URL">
+              <p className="mb-3">This is your unique webhook URL that will receive form submissions:</p>
+              <CopyableField value={webhookUrl} />
+              <p className="text-xs text-muted-foreground mt-2">
+                💡 Keep this URL handy - you'll use it in the next step
+              </p>
+            </WizardStep>
+
+            <WizardStep number={2} title="Add This Simple Code to Your Website">
+              <p className="mb-3">Copy this code and paste it anywhere on the page with your form:</p>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="relative">
+                    <Textarea
+                      value={generateSimpleScript()}
+                      readOnly
+                      rows={12}
+                      className="font-mono text-xs"
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generateSimpleScript());
+                        toast.success('Code copied to clipboard!');
+                      }}
+                    >
+                      <Copy className="w-4 h-4 mr-1" />
+                      Copy
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </WizardStep>
+
+            <WizardStep number={3} title="Update the Form Selector (Important!)">
+              <p className="mb-3">In the code above, change this line to match your form:</p>
+              <Card className="bg-yellow-50 border-yellow-200">
+                <CardContent className="p-3">
+                  <code className="text-sm font-mono">
+                    const form = document.querySelector('#contact-form');
+                  </code>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Replace <strong>#contact-form</strong> with your form's ID or class
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <div className="mt-4 space-y-2">
+                <h4 className="font-medium text-sm">Common examples:</h4>
+                <div className="grid grid-cols-1 gap-2 text-xs font-mono bg-gray-50 p-3 rounded">
+                  <div><code>'#contact-form'</code> - for forms with id="contact-form"</div>
+                  <div><code>'.contact-form'</code> - for forms with class="contact-form"</div>
+                  <div><code>'form[name="contact"]'</code> - for forms with name="contact"</div>
+                  <div><code>'#wpcf7-f123-p456-o1'</code> - for Contact Form 7</div>
+                </div>
+              </div>
+            </WizardStep>
+
+            <WizardStep number={4} title="Test Your Connection">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2">Ready to test!</h4>
+                <ol className="text-sm text-green-700 space-y-1 list-decimal list-inside">
+                  <li>Submit a test form on your website</li>
+                  <li>Check your SmartForms inbox within 30 seconds</li>
+                  <li>Your test lead should appear automatically</li>
+                </ol>
+                <p className="text-xs text-green-600 mt-3">
+                  🎉 Your existing form will continue working exactly as before, plus you'll get all submissions in SmartForms!
+                </p>
+              </div>
+            </WizardStep>
+
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  Popular Form Types - Quick Setup
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">WordPress Contact Form 7</h4>
+                    <code className="text-xs bg-gray-100 p-1 rounded">'.wpcf7-form'</code>
+                    <p className="text-xs text-muted-foreground">Most Contact Form 7 forms use this class</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h4 className="font-medium">WordPress Gravity Forms</h4>
+                    <code className="text-xs bg-gray-100 p-1 rounded">'.gform_wrapper form'</code>
+                    <p className="text-xs text-muted-foreground">Standard Gravity Forms selector</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h4 className="font-medium">HTML Contact Forms</h4>
+                    <code className="text-xs bg-gray-100 p-1 rounded">'#contact-form'</code>
+                    <p className="text-xs text-muted-foreground">If your form has id="contact-form"</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Generic Forms</h4>
+                    <code className="text-xs bg-gray-100 p-1 rounded">'form'</code>
+                    <p className="text-xs text-muted-foreground">Captures ALL forms on the page</p>
+                  </div>
+                </div>
+                
+                <Alert>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    <strong>Pro tip:</strong> Right-click your form and "Inspect Element" to find the exact ID or class name.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="configure" className="space-y-4">
             <Card>

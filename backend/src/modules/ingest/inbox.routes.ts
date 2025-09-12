@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
-import { EmailListenerManager } from './email.listener.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { EmailListenerManager } from './email.listener';
 
 // Global email listener manager instance
 let emailListenerManager: EmailListenerManager | null = null;

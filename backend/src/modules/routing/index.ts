@@ -1,5 +1,5 @@
 // Re-export all routing functionality
-export { routeLead } from './engine.js';
+export { routeLead } from './engine';
 export { 
   getRoutingRules, 
   upsertRoutingRule, 
@@ -10,8 +10,8 @@ export {
   initializeDefaultRoutingRules,
   getOwnerPools,
   getRoutingStats
-} from './config.js';
-export { registerRoutingRoutes } from './routes.js';
+} from './config';
+export { registerRoutingRoutes } from './routes';
 
 // Re-export types
 export type { 
@@ -20,4 +20,4 @@ export type {
   OwnerPool,
   RoutingResult, 
   RoutingTrace 
-} from './engine.js';
+} from './engine';

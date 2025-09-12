@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { getCredentials, refreshTokenIfNeeded, OAuthCredentials } from './credential.service.js';
+import { getCredentials, refreshTokenIfNeeded, OAuthCredentials } from './credential.service';
 
 export interface CRMField {
   name: string;

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth.js';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 
 // Validation schemas
 const loginSchema = z.object({

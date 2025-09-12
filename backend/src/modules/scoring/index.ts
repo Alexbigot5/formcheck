@@ -1,5 +1,5 @@
 // Re-export all scoring functionality
-export { applyScoring, getDefaultScoringConfig } from './engine.js';
+export { applyScoring, getDefaultScoringConfig } from './engine';
 export { 
   getScoringConfig, 
   getScoringRules, 
@@ -12,8 +12,8 @@ export {
   validateScoringConfig,
   validateScoringRule,
   initializeDefaultScoringConfig
-} from './config.js';
-export { registerScoringRoutes } from './routes.js';
+} from './config';
+export { registerScoringRoutes } from './routes';
 
 // Re-export types
 export type { 
@@ -22,4 +22,4 @@ export type {
   Lead, 
   ScoringResult, 
   ScoringTrace 
-} from './engine.js';
+} from './engine';

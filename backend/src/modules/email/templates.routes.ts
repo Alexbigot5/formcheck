@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth.js';
+import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
 
 // Validation schemas
 const emailTemplateSchema = z.object({

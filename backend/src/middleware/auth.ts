@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { createHash, createHmac } from 'crypto';
-import { loadEnv } from '../config/env.js';
+import { loadEnv } from '../config/env';
 
 const env = loadEnv();
 

@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth.js';
-import { storeCredentials, getCredentials, deleteCredentials, hasValidCredentials, OAuthCredentials } from './credential.service.js';
-import { getCRMFields, syncLeadToCRM } from './crm.service.js';
+import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
+import { storeCredentials, getCredentials, deleteCredentials, hasValidCredentials, OAuthCredentials } from './credential.service';
+import { getCRMFields, syncLeadToCRM } from './crm.service';
 
 // Validation schemas
 const oauthCallbackSchema = z.object({

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { NormalizedLead } from './normalizer.js';
-import { enrichLead as enrichLeadData } from '../enrich/index.js';
+import { NormalizedLead } from './normalizer';
+import { enrichLead as enrichLeadData } from '../enrich/index';
 
 export interface EnrichedLead extends NormalizedLead {
   enrichment?: {
