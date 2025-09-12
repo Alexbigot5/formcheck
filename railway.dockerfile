@@ -18,8 +18,12 @@ COPY backend/tsconfig.json ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build TypeScript to JavaScript
+# Build TypeScript to JavaScript  
 RUN echo "=== COMPILING TYPESCRIPT ===" && \
+    echo "Files in current directory:" && \
+    ls -la && \
+    echo "Checking tsconfig.json:" && \
+    cat tsconfig.json && \
     npx tsc && \
     echo "=== TYPESCRIPT COMPILATION COMPLETE ===" && \
     ls -la dist/ && \
