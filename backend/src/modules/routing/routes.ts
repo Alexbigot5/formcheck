@@ -84,7 +84,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       }
 
       // Apply routing
-      const result = await routeLead(app, leadData as Lead, rules);
+      const result = await routeLead(app, leadData as Lead, rules, teamId);
 
       return reply.send(result);
 
@@ -490,7 +490,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
       // Process all leads
       const results = [];
       for (const leadData of leads) {
-        const routing = await routeLead(app, leadData as Lead, rules);
+        const routing = await routeLead(app, leadData as Lead, rules, teamId);
         results.push({ lead: leadData, routing });
       }
 

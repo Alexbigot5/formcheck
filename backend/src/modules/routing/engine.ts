@@ -78,7 +78,8 @@ export interface RoutingTrace {
 export async function routeLead(
   app: FastifyInstance,
   lead: Lead,
-  rules: RoutingRule[]
+  rules: RoutingRule[],
+  teamId: string
 ): Promise<RoutingResult> {
   const trace: RoutingTrace[] = [];
   const alerts: RoutingResult['alerts'] = [];
@@ -111,6 +112,7 @@ export async function routeLead(
           app, 
           assignment.assign, 
           lead, 
+          teamId,
           trace
         );
         
@@ -223,6 +225,7 @@ async function handleAssignment(
   app: FastifyInstance,
   assignment: string,
   lead: Lead,
+  teamId: string,
   trace: RoutingTrace[]
 ): Promise<{ ownerId: string | null; pool: string | null }> {
   
@@ -238,7 +241,7 @@ async function handleAssignment(
   }
 
   // Otherwise, treat as pool assignment
-  const pool = await getOwnerPool(app, assignment, lead.teamId);
+  const pool = await getOwnerPool(app, assignment, teamId);
   if (!pool) {
     trace.push({
       step: 'pool_not_found',
@@ -250,7 +253,7 @@ async function handleAssignment(
   }
 
   // Get next owner from pool using round-robin
-  const selectedOwner = await getNextOwnerFromPool(app, pool, lead.teamId, trace);
+  const selectedOwner = await getNextOwnerFromPool(app, pool, teamId, trace);
   
   return { 
     ownerId: selectedOwner?.ownerId || null, 
@@ -274,9 +277,9 @@ async function handleDefaultAssignment(
   });
 
   // Try to find a default pool
-  const defaultPool = await getDefaultOwnerPool(app, lead.teamId);
+  const defaultPool = await getDefaultOwnerPool(app, teamId);
   if (defaultPool) {
-    const selectedOwner = await getNextOwnerFromPool(app, defaultPool, lead.teamId, trace);
+    const selectedOwner = await getNextOwnerFromPool(app, defaultPool, teamId, trace);
     return { 
       ownerId: selectedOwner?.ownerId || null, 
       pool: defaultPool.name 
@@ -284,7 +287,7 @@ async function handleDefaultAssignment(
   }
 
   // Fallback: assign to any available owner
-  const availableOwner = await getAnyAvailableOwner(app, lead.teamId);
+  const availableOwner = await getAnyAvailableOwner(app, teamId);
   if (availableOwner) {
     trace.push({
       step: 'fallback_assignment',
@@ -448,16 +451,18 @@ async function getAnyAvailableOwner(
   teamId: string
 ): Promise<{ id: string } | null> {
   try {
-    const owner = await app.prisma.owner.findFirst({
-      where: { 
-        teamId,
-        leads: {
-          _count: {
-            lt: app.prisma.owner.fields.capacity
-          }
+    // Find owners with capacity available
+    const owners = await app.prisma.owner.findMany({
+      where: { teamId },
+      include: {
+        _count: {
+          select: { leads: true }
         }
       }
     });
+
+    // Find first owner with available capacity
+    const owner = owners.find(o => o._count.leads < o.capacity);
 
     return owner ? { id: owner.id } : null;
   } catch (error) {

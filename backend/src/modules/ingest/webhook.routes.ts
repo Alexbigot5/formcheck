@@ -147,7 +147,7 @@ export async function registerWebhookIngestionRoutes(app: FastifyInstance) {
           routingRules = await initializeDefaultRoutingRules(app, teamId);
         }
 
-        routingResult = await routeLead(app, scoredLead, routingRules);
+        routingResult = await routeLead(app, scoredLead, routingRules, teamId);
 
         // Update lead with routing assignment
         if (routingResult.ownerId) {

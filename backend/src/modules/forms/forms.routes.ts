@@ -60,7 +60,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
         data: {
           ...body,
           userId,
-          teamId,
+          teamId: teamId!,
         },
       });
       
@@ -71,7 +71,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
   // Update form
   app.put('/api/forms/:id', {
     preHandler: [app.authenticate],
-    handler: async (request) => {
+    handler: async (request, reply) => {
       const { id } = request.params as { id: string };
       const user = request.user as { id: string };
       const body = UpdateFormSchema.parse(request.body);
@@ -96,7 +96,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
   // Delete form
   app.delete('/api/forms/:id', {
     preHandler: [app.authenticate],
-    handler: async (request) => {
+    handler: async (request, reply) => {
       const { id } = request.params as { id: string };
       const user = request.user as { id: string };
       

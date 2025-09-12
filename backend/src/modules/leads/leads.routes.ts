@@ -76,8 +76,9 @@ export async function registerLeadRoutes(app: FastifyInstance) {
         rules = initialized.rules;
       }
 
-      // Apply scoring
-      const scoringResult = await applyScoring(app, leadData, config, rules);
+      // Apply scoring (ensure source is provided)
+      const leadWithSource = { ...leadData, source: leadData.source || 'manual' };
+      const scoringResult = await applyScoring(app, leadWithSource as any, config, rules);
       
       // Update lead data with scoring results
       const enrichedLeadData = {
@@ -101,7 +102,8 @@ export async function registerLeadRoutes(app: FastifyInstance) {
         }
 
         // Apply routing
-        routingResult = await routeLead(app, enrichedLeadData, routingRules);
+        const enrichedLeadWithSource = { ...enrichedLeadData, source: enrichedLeadData.source || 'manual' };
+        routingResult = await routeLead(app, enrichedLeadWithSource as any, routingRules, teamId);
 
         // Update lead with routing assignment
         if (routingResult.ownerId) {
@@ -149,10 +151,10 @@ export async function registerLeadRoutes(app: FastifyInstance) {
               score: scoringResult.score,
               band: scoringResult.band,
               tags: scoringResult.tags,
-              trace: scoringResult.trace,
+              trace: JSON.parse(JSON.stringify(scoringResult.trace)),
               routing: scoringResult.routing,
               sla: scoringResult.sla
-            }
+            } as any
           }
         });
       }

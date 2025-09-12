@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 import { 
   enrichLead, 
   batchEnrichLeads, 

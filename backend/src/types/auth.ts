@@ -17,10 +17,10 @@ export interface AuthApiKey {
 }
 
 // Extended FastifyRequest with authentication context
-export interface AuthenticatedRequest extends FastifyRequest {
-  user: AuthUser;  // Make required to fix type issues
+export interface AuthenticatedRequest extends Omit<FastifyRequest, 'user'> {
+  user: AuthUser;  // Override user type to be AuthUser instead of FastifyRequest's user
   apiKey?: AuthApiKey;
-  teamId: string;  // Make required for team isolation
+  teamId?: string;  // Make optional to fix handler compatibility
 }
 
 // JWT payload type

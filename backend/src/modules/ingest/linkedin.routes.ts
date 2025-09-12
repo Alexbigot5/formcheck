@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { parse } from 'csv-parse/sync';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 import { NormalizedLead } from './normalizer';
 import { deduplicateLead } from '../dedupe/index';
 import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index';

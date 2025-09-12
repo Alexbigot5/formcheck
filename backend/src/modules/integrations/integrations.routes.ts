@@ -150,7 +150,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
 
       return reply.send({
         mapping,
-        lastUpdated: integration.updatedAt.toISOString()
+        lastUpdated: integration.lastSyncAt?.toISOString() || new Date().toISOString()
       });
 
     } catch (error) {
@@ -826,7 +826,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
         fieldMapping,
         process.env.SECRET_VAULT_KEY!,
         dryRun,
-        duplicatePolicy || 'update'
+(duplicatePolicy as 'skip' | 'update' | 'create_new') || 'update'
       );
 
       // Log timeline event if not dry run and successful
@@ -835,12 +835,14 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
           data: {
             leadId: lead.id,
             type: 'CRM_SYNC',
-            title: `Synced to ${provider}`,
-            body: `Lead ${result.action} in ${provider}: ${result.message}`,
-            meta: {
-              provider,
-              contactId: result.contactId,
-              action: result.action
+            payload: {
+              title: `Synced to ${provider}`,
+              body: `Lead ${result.action} in ${provider}: ${result.message}`,
+              meta: {
+                provider,
+                contactId: result.contactId,
+                action: result.action
+              }
             }
           }
         });
