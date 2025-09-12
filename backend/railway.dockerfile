@@ -3,17 +3,17 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files first
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy prisma schema
-COPY prisma ./prisma/
+COPY backend/prisma ./prisma/
 
 # Copy source code (excluding test files)
-COPY src ./src/
-COPY tsconfig.json ./
+COPY backend/src ./src/
+COPY backend/tsconfig.json ./
 
 # Generate Prisma client
 RUN npx prisma generate
