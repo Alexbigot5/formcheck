@@ -11,9 +11,9 @@ RUN npm ci
 # Copy prisma schema
 COPY backend/prisma ./prisma/
 
-# Copy source code (excluding test files)
+# Copy source code and config files
 COPY backend/src ./src/
-COPY backend/tsconfig.json ./
+COPY backend/tsconfig.json ./tsconfig.json
 
 # Generate Prisma client
 RUN npx prisma generate
