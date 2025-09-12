@@ -14,9 +14,13 @@ COPY backend/prisma ./prisma/
 # Copy source code (excluding test files)
 COPY backend/src ./src/
 
-# Debug: List what's actually in the backend directory
-RUN echo "=== LISTING BACKEND DIRECTORY ===" && \
-    ls -la backend/ || echo "backend directory not found"
+# Debug: List what's actually available in build context
+RUN echo "=== LISTING ROOT DIRECTORY ===" && \
+    ls -la . && \
+    echo "=== CHECKING FOR BACKEND DIRECTORY ===" && \
+    ls -la backend/ || echo "backend directory not found" && \
+    echo "=== LISTING ALL DIRECTORIES ===" && \
+    find . -name "tsconfig.json" -type f || echo "No tsconfig.json found anywhere"
 
 COPY backend/tsconfig.json ./
 
