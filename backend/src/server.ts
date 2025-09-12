@@ -156,6 +156,15 @@ async function start() {
   }
 }
 
+// Add immediate console log to verify code is running
+console.log('🚀 SERVER.TS LOADED - VERSION 2.0');
+console.log('Environment check:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  hasDB: !!process.env.DATABASE_URL,
+  hasJWT: !!process.env.JWT_SECRET
+});
+
 if (process.env.NODE_ENV !== 'test') {
   start();
 }
