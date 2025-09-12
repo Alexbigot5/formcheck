@@ -54,7 +54,6 @@ export async function registerLinkedInRoutes(app: FastifyInstance) {
    */
   app.post('/ingest/linkedin-csv', {
     schema: {
-      consumes: ['multipart/form-data'],
       response: {
         200: z.object({
           success: z.boolean(),
@@ -198,7 +197,7 @@ export async function registerLinkedInRoutes(app: FastifyInstance) {
             // Step 4: Routing (only for new leads)
             let routingResult = null;
             if (dedupeResult.action === 'created') {
-              routingResult = await routeLead(app, scoredLead, routingRules);
+              routingResult = await routeLead(app, scoredLead, routingRules, teamId);
 
               // Update lead with routing assignment
               if (routingResult.ownerId) {
@@ -641,7 +640,6 @@ export async function analyzeLinkedInCsv(csvContent: string): Promise<{
 export async function registerLinkedInAnalysisRoute(app: FastifyInstance) {
   app.post('/ingest/linkedin-csv/analyze', {
     schema: {
-      consumes: ['multipart/form-data'],
       response: {
         200: z.object({
           totalRows: z.number(),

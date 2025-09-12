@@ -126,6 +126,9 @@ export async function deduplicateLead(
   } catch (error) {
     app.log.error('Deduplication failed:', error);
     
+    // Build keys again for fallback
+    const keys = buildKeys(lead);
+    
     // Fallback: create new lead without deduplication
     const newLead = await createLeadWithKeys(app, lead, teamId, keys);
     
@@ -135,7 +138,7 @@ export async function deduplicateLead(
       teamId,
       keys,
       decision: 'deduplication_failed_fallback',
-      error: error.message
+      error: (error as Error).message
     });
 
     return {

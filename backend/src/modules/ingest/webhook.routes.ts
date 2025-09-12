@@ -288,7 +288,7 @@ export async function registerWebhookIngestionRoutes(app: FastifyInstance) {
         ...enrichedLead,
         score: scoringResult.score,
         scoreBand: scoringResult.band
-      }, mockRoutingRules);
+      }, mockRoutingRules, 'demo-team-id');
 
       return reply.send({
         normalized: normalizedLead,

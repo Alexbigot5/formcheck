@@ -146,7 +146,7 @@ export async function routeLead(
 
   // If no rules matched, try default assignment
   if (!assignedOwnerId && !assignedPool) {
-    const defaultResult = await handleDefaultAssignment(app, lead, trace);
+    const defaultResult = await handleDefaultAssignment(app, lead, teamId, trace);
     assignedOwnerId = defaultResult.ownerId;
     assignedPool = defaultResult.pool;
   }
@@ -267,6 +267,7 @@ async function handleAssignment(
 async function handleDefaultAssignment(
   app: FastifyInstance,
   lead: Lead,
+  teamId: string,
   trace: RoutingTrace[]
 ): Promise<{ ownerId: string | null; pool: string | null }> {
   

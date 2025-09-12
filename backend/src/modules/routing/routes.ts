@@ -145,7 +145,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
         });
       }
 
-      const rule = await upsertRoutingRule(app, teamId, ruleData);
+      const rule = await upsertRoutingRule(app, teamId, ruleData as any);
 
       return reply.code(201).send({
         rule,
@@ -191,7 +191,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
         }
       }
 
-      const rule = await updateRoutingRule(app, id, teamId, updates);
+      const rule = await updateRoutingRule(app, id, teamId, updates as any);
 
       return reply.send({
         rule,

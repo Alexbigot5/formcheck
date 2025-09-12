@@ -59,7 +59,7 @@ async function buildServer() {
     FRONTEND_URL: env.FRONTEND_URL,
     DATABASE_URL: env.DATABASE_URL ? 'Set' : 'Not set',
     JWT_SECRET: env.JWT_SECRET ? 'Set' : 'Not set'
-  } as any);
+  });
 
   // Configure CORS for frontend origin
   const allowedOrigins = [
@@ -82,7 +82,7 @@ async function buildServer() {
     await app.register(prismaPlugin);
     app.log.info('Prisma plugin registered successfully');
   } catch (error) {
-    app.log.error('Failed to register core plugins:', error as any);
+    app.log.error('Failed to register core plugins:', error);
     throw error;
   }
 

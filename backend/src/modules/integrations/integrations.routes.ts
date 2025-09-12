@@ -107,7 +107,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
       }
 
       // Get fields from CRM
-      const fields = await getCRMFields(kind, integration.auth as any);
+      const fields = await getCRMFields(app, teamId, kind, process.env.SECRET_VAULT_KEY!);
 
       return reply.send({ fields });
 

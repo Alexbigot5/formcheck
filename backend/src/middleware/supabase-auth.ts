@@ -27,7 +27,7 @@ function getSupabaseClient() {
  * Middleware to authenticate requests using Supabase JWT tokens
  */
 export async function authenticateSupabase(
-  request: AuthenticatedRequest,
+  request: FastifyRequest,
   reply: FastifyReply
 ) {
   try {
@@ -76,15 +76,16 @@ export async function authenticateSupabase(
       });
     }
 
-    // Add user info to request
-    request.user = {
+    // Add user info to request (cast to AuthenticatedRequest)
+    const authRequest = request as AuthenticatedRequest;
+    authRequest.user = {
       id: profile.id,
       email: profile.email,
       name: profile.name || undefined,
       role: profile.role,
       teamId: profile.teamId || ''
     };
-    request.teamId = profile.teamId || '';
+    authRequest.teamId = profile.teamId || '';
 
   } catch (error) {
     console.error('Authentication error:', error);

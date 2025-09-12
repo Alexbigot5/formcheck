@@ -58,9 +58,10 @@ export async function registerFormRoutes(app: FastifyInstance) {
       
       const form = await app.prisma.form.create({
         data: {
-          ...body,
+          name: body.name,
+          schema: body.schema,
           userId,
-          teamId: teamId!,
+          teamId: teamId || undefined,
         },
       });
       

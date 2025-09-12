@@ -564,7 +564,7 @@ async function createSampleLeads(teamId: string, owners: any[]) {
     const lead = await prisma.lead.create({
       data: {
         ...leadData,
-        ownerId: assignedOwner.id,
+        ownerId: assignedOwner.id as string,
         status: i < 2 ? 'ASSIGNED' : 'NEW',
         createdAt: new Date(Date.now() - (i * 2 * 60 * 60 * 1000)) // Stagger creation times
       }

@@ -8,7 +8,7 @@ const env = loadEnv();
 /**
  * JWT-based authentication middleware
  */
-export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply) {
+export async function jwtAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
     const token = extractBearerToken(request);
     if (!token) {
@@ -35,15 +35,16 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
     // Get primary team (first team the user owns/belongs to)
     const primaryOwner = user.owners[0];
 
-    // Add user info to request
-    request.user = {
+    // Add user info to request (cast to AuthenticatedRequest)
+    const authRequest = request as AuthenticatedRequest;
+    authRequest.user = {
       id: user.id,
       email: user.email,
       name: user.name || undefined,
       teamId: primaryOwner.teamId,
       role: user.role
     };
-    request.teamId = primaryOwner.teamId;
+    authRequest.teamId = primaryOwner.teamId;
 
   } catch (error) {
     return reply.code(401).send({ error: 'Invalid token' });
@@ -53,7 +54,7 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
 /**
  * API Key authentication middleware
  */
-export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyReply) {
+export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
     const apiKey = extractApiKey(request);
     if (!apiKey) {
@@ -83,8 +84,9 @@ export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyRe
       }
     }
 
-    // Add API key info to request
-    request.apiKey = {
+    // Add API key info to request (cast to AuthenticatedRequest)
+    const authRequest = request as AuthenticatedRequest;
+    authRequest.apiKey = {
       id: apiKeyRecord.id,
       teamId: apiKeyRecord.teamId,
       name: apiKeyRecord.name
@@ -92,13 +94,13 @@ export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyRe
     
     // For API key auth, we still need a user context
     // Create a synthetic user from API key context
-    request.user = {
+    authRequest.user = {
       id: apiKeyRecord.id,
       email: 'api-key@system',
       teamId: apiKeyRecord.teamId,
       role: 'EDITOR' // API keys have editor role by default
     };
-    request.teamId = apiKeyRecord.teamId;
+    authRequest.teamId = apiKeyRecord.teamId;
 
   } catch (error) {
     return reply.code(401).send({ error: 'API key authentication failed' });
@@ -154,7 +156,7 @@ export async function teamIsolation(request: AuthenticatedRequest, reply: Fastif
 /**
  * Combined authentication middleware (JWT or API Key)
  */
-export async function authenticate(request: AuthenticatedRequest, reply: FastifyReply) {
+export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   const hasJWT = extractBearerToken(request);
   const hasApiKey = extractApiKey(request);
 
@@ -167,7 +169,7 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
   }
 
   // Apply team isolation
-  await teamIsolation(request, reply);
+  await teamIsolation(request as AuthenticatedRequest, reply);
 }
 
 // Helper functions
