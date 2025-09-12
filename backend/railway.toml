@@ -1,7 +1,6 @@
 ﻿[build]
 builder = "dockerfile"
-dockerfilePath = "backend/railway.dockerfile"
-dockerContext = "backend"
+dockerfilePath = "railway.dockerfile"
 
 [deploy]
 startCommand = "/app/start.sh"
