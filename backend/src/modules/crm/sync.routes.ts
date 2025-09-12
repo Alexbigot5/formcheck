@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 
 export async function registerCrmSyncRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
@@ -51,7 +52,7 @@ export async function registerCrmSyncRoutes(app: FastifyInstance) {
         where: { id, teamId },
         include: {
           owner: {
-            include: { user: { select: { email: true, firstName: true, lastName: true } } }
+            include: { user: { select: { email: true, name: true } } }
           },
           messages: {
             orderBy: { createdAt: 'desc' },
@@ -107,7 +108,7 @@ export async function registerCrmSyncRoutes(app: FastifyInstance) {
       await app.prisma.timelineEvent.create({
         data: {
           leadId: id,
-          type: 'CRM_UPDATE',
+          type: 'CRM_SYNC',
           payload: {
             provider: crmProvider,
             action: 'sync',

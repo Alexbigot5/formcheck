@@ -110,14 +110,7 @@ async function buildServer() {
   await registerCrmSyncRoutes(app);
   await registerOAuthRoutes(app);
 
-  // Add standardized response helpers
-  app.decorate('sendSuccess', function(data: any, statusCode: number = 200) {
-    return this.code(statusCode).send({ ok: true, data });
-  });
-  
-  app.decorate('sendError', function(error: string, statusCode: number = 400) {
-    return this.code(statusCode).send({ ok: false, error });
-  });
+  // Add standardized response helpers (removed - using reply decorators only)
 
   // Add reply decorators
   app.decorateReply('sendSuccess', function(data: any, statusCode: number = 200) {

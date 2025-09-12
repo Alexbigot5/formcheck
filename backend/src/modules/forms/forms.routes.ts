@@ -11,7 +11,8 @@ const UpdateFormSchema = z.object({
   schema: z.object({}).passthrough().optional(),
 });
 
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
+import { authenticateSupabase } from '../../middleware/supabase-auth';
+import { AuthenticatedRequest } from '../../types/auth';
 
 export async function registerFormRoutes(app: FastifyInstance) {
   // Get all forms for authenticated user
@@ -81,7 +82,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
       });
       
       if (form.count === 0) {
-        return app.httpErrors.notFound('Form not found');
+        return reply.code(404).send({ error: 'Form not found' });
       }
       
       const updatedForm = await app.prisma.form.findUnique({
@@ -104,7 +105,7 @@ export async function registerFormRoutes(app: FastifyInstance) {
       });
       
       if (result.count === 0) {
-        return app.httpErrors.notFound('Form not found');
+        return reply.code(404).send({ error: 'Form not found' });
       }
       
       return { success: true };

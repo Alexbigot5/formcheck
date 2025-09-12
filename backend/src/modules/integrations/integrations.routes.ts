@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
+import { authenticateSupabase } from '../../middleware/supabase-auth';
+import { AuthenticatedRequest } from '../../types/auth';
 import { storeCredentials, getCredentials, deleteCredentials, hasValidCredentials, OAuthCredentials } from './credential.service';
 import { getCRMFields, syncLeadToCRM } from './crm.service';
 
@@ -75,7 +76,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/fields - Get CRM fields
    */
   app.get('/integrations/:kind/fields', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
@@ -120,7 +121,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/mapping - Get current field mapping
    */
   app.get('/integrations/:kind/mapping', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
@@ -162,7 +163,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/mapping - Save field mapping
    */
   app.post('/integrations/:kind/mapping', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
@@ -216,7 +217,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/health - Get integration health status
    */
   app.get('/integrations/:kind/health', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
@@ -284,7 +285,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/test - Test integration connection
    */
   app.post('/integrations/:kind/test', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
@@ -366,7 +367,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/disconnect - Disconnect integration
    */
   app.post('/integrations/:kind/disconnect', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
@@ -414,7 +415,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/start - Start OAuth flow
    */
   app.get('/integrations/:kind/start', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce'])
@@ -468,7 +469,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/callback - OAuth callback
    */
   app.post('/integrations/:kind/callback', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce'])
@@ -598,7 +599,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * DELETE /integrations/:kind/disconnect - Disconnect integration
    */
   app.delete('/integrations/:kind/disconnect', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce'])
@@ -649,7 +650,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/fields - Get CRM fields
    */
   app.get('/integrations/:kind/fields', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce'])
@@ -694,7 +695,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/mapping - Save field mapping
    */
   app.post('/integrations/:kind/mapping', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         kind: z.enum(['hubspot', 'salesforce'])
@@ -751,7 +752,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /crm/sync/lead/:id - Sync lead to CRM
    */
   app.post('/crm/sync/lead/:id', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       params: z.object({
         id: z.string().cuid()
@@ -872,7 +873,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/status - Get integration status
    */
   app.get('/integrations/status', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       response: {
         200: z.object({
@@ -938,7 +939,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/slack/test - Test Slack webhook
    */
   app.post('/integrations/slack/test', {
-    preHandler: [authenticate],
+    preHandler: [authenticateSupabase],
     schema: {
       response: {
         200: z.object({

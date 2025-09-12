@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnv } from '../config/env';
+import { AuthenticatedRequest } from '../types/auth';
 
 // Version 2.1 - Fixed lazy loading of Supabase client
 
@@ -21,21 +22,12 @@ function getSupabaseClient() {
   return supabase;
 }
 
-export interface AuthenticatedRequest extends FastifyRequest {
-  user?: {
-    id: string;
-    email: string;
-    name?: string;
-    role: string;
-  };
-  teamId?: string;
-}
 
 /**
  * Middleware to authenticate requests using Supabase JWT tokens
  */
 export async function authenticateSupabase(
-  request: FastifyRequest,
+  request: AuthenticatedRequest,
   reply: FastifyReply
 ) {
   try {
@@ -85,13 +77,14 @@ export async function authenticateSupabase(
     }
 
     // Add user info to request
-    (request as AuthenticatedRequest).user = {
+    request.user = {
       id: profile.id,
       email: profile.email,
       name: profile.name || undefined,
-      role: profile.role
+      role: profile.role,
+      teamId: profile.teamId || ''
     };
-    (request as AuthenticatedRequest).teamId = profile.teamId || undefined;
+    request.teamId = profile.teamId || '';
 
   } catch (error) {
     console.error('Authentication error:', error);

@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 
 export async function registerOAuthRoutes(app: FastifyInstance) {
   // Apply authentication to OAuth start routes
@@ -171,11 +172,11 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
         throw new Error(`Token exchange failed: ${tokenResponse.statusText}`);
       }
 
-      const tokens = await tokenResponse.json();
+      const tokens = await tokenResponse.json() as any;
 
       // Get account info
       const accountResponse = await fetch('https://api.hubapi.com/oauth/v1/access-tokens/' + tokens.access_token);
-      const accountInfo = await accountResponse.json();
+      const accountInfo = await accountResponse.json() as any;
 
       // Store integration
       await app.prisma.integration.upsert({
@@ -285,7 +286,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
         throw new Error(`Token exchange failed: ${tokenResponse.statusText}`);
       }
 
-      const tokens = await tokenResponse.json();
+      const tokens = await tokenResponse.json() as any;
 
       // Get user info
       const userResponse = await fetch(tokens.id, {
@@ -293,7 +294,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
           'Authorization': `Bearer ${tokens.access_token}`
         }
       });
-      const userInfo = await userResponse.json();
+      const userInfo = await userResponse.json() as any;
 
       // Store integration
       await app.prisma.integration.upsert({

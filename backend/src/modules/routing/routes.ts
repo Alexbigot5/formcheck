@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 import { routeLead, type Lead, type RoutingResult } from './engine';
 import { 
   getRoutingRules, 
@@ -334,8 +335,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
           user: {
             select: {
               email: true,
-              firstName: true,
-              lastName: true
+              name: true,
             }
           },
           _count: {
@@ -377,9 +377,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
         id: owner.id,
         userId: owner.userId,
         email: owner.user.email,
-        name: owner.user.firstName && owner.user.lastName 
-          ? `${owner.user.firstName} ${owner.user.lastName}` 
-          : undefined,
+        name: owner.user.name || undefined,
         capacity: owner.capacity,
         currentLoad: owner._count.leads,
         isActive: owner._count.leads < owner.capacity,
@@ -620,11 +618,23 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
     const teamId = (request as any).teamId;
 
     try {
-      const slaSettings = await app.prisma.sLASetting.upsert({
-        where: { teamId },
-        update: { thresholds },
-        create: { teamId, thresholds }
+      // Find existing SLA settings for team
+      let slaSettings = await app.prisma.sLASetting.findFirst({
+        where: { teamId }
       });
+
+      if (slaSettings) {
+        // Update existing settings
+        slaSettings = await app.prisma.sLASetting.update({
+          where: { id: slaSettings.id },
+          data: { thresholds }
+        });
+      } else {
+        // Create new settings
+        slaSettings = await app.prisma.sLASetting.create({
+          data: { teamId, thresholds }
+        });
+      }
 
       return reply.send({
         message: 'SLA settings saved successfully',

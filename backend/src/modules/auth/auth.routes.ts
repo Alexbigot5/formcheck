@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -118,7 +119,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
             name,
             passwordHash,
             teamId: team.id,
-            role: 'admin', // First user is admin
+            role: 'OWNER', // First user is owner
             // Add other user fields as needed
           }
         });

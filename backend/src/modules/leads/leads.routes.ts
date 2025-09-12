@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
+import { AuthenticatedRequest } from '../../types/auth';
 import { deduplicateLead, analyzeDuplicates, previewMerge } from '../dedupe/index';
 import { applyScoring, getScoringConfig, getScoringRules, initializeDefaultScoringConfig } from '../scoring/index';
 import { routeLead, getRoutingRules, initializeDefaultRoutingRules } from '../routing/index';
@@ -301,7 +302,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
           where,
           include: {
             owner: {
-              include: { user: { select: { email: true, firstName: true, lastName: true } } }
+              include: { user: { select: { email: true, name: true } } }
             },
             slaClocks: {
               where: { satisfiedAt: null },
@@ -343,7 +344,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
           slaStatus,
           slaCountdown,
           ownerName: lead.owner?.user ? 
-            `${lead.owner.user.firstName || ''} ${lead.owner.user.lastName || ''}`.trim() || lead.owner.user.email :
+            lead.owner.user.name || lead.owner.user.email :
             null
         };
       });
@@ -758,7 +759,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
         },
         include: {
           owner: {
-            include: { user: { select: { email: true, firstName: true, lastName: true } } }
+            include: { user: { select: { email: true, name: true } } }
           }
         }
       });
@@ -828,7 +829,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       // Verify owner exists and belongs to team
       const owner = await app.prisma.owner.findFirst({
         where: { id: ownerId, teamId },
-        include: { user: { select: { email: true, firstName: true, lastName: true } } }
+        include: { user: { select: { email: true, name: true } } }
       });
 
       if (!owner) {
@@ -844,7 +845,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
         },
         include: {
           owner: {
-            include: { user: { select: { email: true, firstName: true, lastName: true } } }
+            include: { user: { select: { email: true, name: true } } }
           }
         }
       });
@@ -864,12 +865,12 @@ export async function registerLeadRoutes(app: FastifyInstance) {
       await app.prisma.timelineEvent.create({
         data: {
           leadId: id,
-          type: 'ROUTED',
+          type: 'STATUS_CHANGED',
           payload: {
             oldOwnerId: lead.ownerId,
             newOwnerId: ownerId,
             ownerEmail: owner.user.email,
-            ownerName: `${owner.user.firstName || ''} ${owner.user.lastName || ''}`.trim(),
+            ownerName: owner.user.name || owner.user.email,
             reason: reason || 'Manual assignment',
             sla: sla || null,
             assignedBy: userId
@@ -879,7 +880,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
 
       return reply.send({
         lead: updatedLead,
-        message: `Lead assigned to ${owner.user.firstName || owner.user.email}`
+        message: `Lead assigned to ${owner.user.name || owner.user.email}`
       });
 
     } catch (error) {
@@ -964,7 +965,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
           await app.prisma.timelineEvent.create({
             data: {
               leadId,
-              type: 'SLA_SATISFIED',
+              type: 'STATUS_CHANGED',
               payload: {
                 slaId: firstSLA.id,
                 targetAt: firstSLA.targetAt.toISOString(),

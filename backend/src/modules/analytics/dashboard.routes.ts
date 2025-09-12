@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { authenticateSupabase, AuthenticatedRequest } from '../../middleware/supabase-auth';
+import { authenticateSupabase } from '../../middleware/supabase-auth';
+import { AuthenticatedRequest } from '../../types/auth';
 
 // Validation schemas
 const analyticsQuerySchema = z.object({

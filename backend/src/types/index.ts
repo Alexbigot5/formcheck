@@ -1,13 +1,6 @@
-export type JwtUser = {
-  id: string;
-  email: string;
-  roles?: string[];
-};
+// Re-export auth types for backward compatibility
+export * from './auth';
 
-export type ApiResponse<T> = {
-  success: boolean;
-  data?: T;
-  error?: { message: string; code?: string };
-};
+// Additional types can be added here
 
 

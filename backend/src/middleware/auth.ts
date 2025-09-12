@@ -1,22 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { createHash, createHmac } from 'crypto';
 import { loadEnv } from '../config/env';
+import { AuthenticatedRequest, AuthUser, AuthApiKey } from '../types/auth';
 
 const env = loadEnv();
-
-export interface AuthenticatedRequest extends FastifyRequest {
-  user?: {
-    id: string;
-    teamId: string;
-    role: string;
-  };
-  apiKey?: {
-    id: string;
-    teamId: string;
-    name: string;
-  };
-  teamId?: string;
-}
 
 /**
  * JWT-based authentication middleware
@@ -33,7 +20,7 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
 
     // Get user from database
     const user = await request.server.prisma.user.findUnique({
-      where: { id: decoded.sub },
+      where: { id: (decoded as any).sub },
       include: {
         owners: {
           include: { team: true }
@@ -51,9 +38,12 @@ export async function jwtAuth(request: AuthenticatedRequest, reply: FastifyReply
     // Add user info to request
     request.user = {
       id: user.id,
+      email: user.email,
+      name: user.name || undefined,
       teamId: primaryOwner.teamId,
       role: user.role
     };
+    request.teamId = primaryOwner.teamId;
 
   } catch (error) {
     return reply.code(401).send({ error: 'Invalid token' });
@@ -99,6 +89,16 @@ export async function apiKeyAuth(request: AuthenticatedRequest, reply: FastifyRe
       teamId: apiKeyRecord.teamId,
       name: apiKeyRecord.name
     };
+    
+    // For API key auth, we still need a user context
+    // Create a synthetic user from API key context
+    request.user = {
+      id: apiKeyRecord.id,
+      email: 'api-key@system',
+      teamId: apiKeyRecord.teamId,
+      role: 'EDITOR' // API keys have editor role by default
+    };
+    request.teamId = apiKeyRecord.teamId;
 
   } catch (error) {
     return reply.code(401).send({ error: 'API key authentication failed' });
@@ -142,7 +142,7 @@ export async function webhookAuth(request: FastifyRequest, reply: FastifyReply) 
  * Team isolation middleware - ensures requests are scoped to user's team
  */
 export async function teamIsolation(request: AuthenticatedRequest, reply: FastifyReply) {
-  const teamId = request.user?.teamId || request.apiKey?.teamId;
+  const teamId = request.user.teamId || request.apiKey?.teamId;
   
   if (!teamId) {
     return reply.code(401).send({ error: 'No team context available' });
