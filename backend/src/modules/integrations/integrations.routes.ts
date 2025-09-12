@@ -72,50 +72,6 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * GET /integrations/:kind/fields - Get CRM fields
-   */
-  app.get('/integrations/:kind/fields', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      }),
-      response: {
-        200: z.object({
-          fields: z.array(z.object({
-            name: z.string(),
-            label: z.string(),
-            type: z.string(),
-            required: z.boolean(),
-            options: z.array(z.string()).optional()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const { kind } = request.params as { kind: string };
-    const teamId = (request as any).teamId;
-
-    try {
-      const integration = await app.prisma.integration.findFirst({
-        where: { teamId, kind: kind.toUpperCase() as any }
-      });
-
-      if (!integration || integration.status !== 'CONNECTED') {
-        return reply.code(404).send({ error: 'Integration not connected' });
-      }
-
-      // Get fields from CRM
-      const fields = await getCRMFields(app, teamId, kind, process.env.SECRET_VAULT_KEY!);
-
-      return reply.send({ fields });
-
-    } catch (error) {
-      app.log.error('Failed to get CRM fields:', error);
-      return reply.code(500).send({ error: 'Failed to get CRM fields' });
-    }
-  });
 
   /**
    * GET /integrations/:kind/mapping - Get current field mapping
