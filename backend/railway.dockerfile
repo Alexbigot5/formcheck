@@ -18,8 +18,8 @@ COPY tsconfig.json ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# Expose port
-EXPOSE $PORT
+# Expose port (Railway will set PORT dynamically)
+EXPOSE 4000
 
-# Start directly with tsx to avoid any npm script issues
-CMD ["npx", "tsx", "src/server.ts"]
+# Run database migrations and start server
+CMD npx prisma migrate deploy && npx tsx src/server.ts
