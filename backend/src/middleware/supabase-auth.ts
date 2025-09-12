@@ -2,13 +2,21 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnv } from '../config/env';
 
-const env = loadEnv();
-
-// Only create Supabase client if environment variables are provided
+// Lazy load environment and supabase client
 let supabase: ReturnType<typeof createClient> | null = null;
 
-if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
-  supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+function getSupabaseClient() {
+  if (!supabase) {
+    try {
+      const env = loadEnv();
+      if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+        supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+      }
+    } catch (error) {
+      console.error('Failed to load Supabase environment:', error);
+    }
+  }
+  return supabase;
 }
 
 export interface AuthenticatedRequest extends FastifyRequest {
@@ -29,7 +37,8 @@ export async function authenticateSupabase(
   reply: FastifyReply
 ) {
   try {
-    if (!supabase) {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
       return reply.code(500).send({ error: 'Supabase not configured' });
     }
 
@@ -41,7 +50,7 @@ export async function authenticateSupabase(
     const token = authHeader.substring(7);
     
     // Verify the JWT token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseClient.auth.getUser(token);
     
     if (error || !user) {
       return reply.code(401).send({ error: 'Invalid token' });
