@@ -2,22 +2,18 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Debug: List what's actually available in build context FIRST
-RUN echo "=== LISTING ROOT DIRECTORY ===" && \
-    ls -la . && \
-    echo "=== CHECKING FOR BACKEND DIRECTORY ===" && \
-    ls -la backend/ || echo "backend directory not found" && \
-    echo "=== LISTING ALL DIRECTORIES ===" && \
-    find . -name "tsconfig.json" -type f || echo "No tsconfig.json found anywhere" && \
-    echo "=== FINDING ALL JSON FILES ===" && \
-    find . -name "*.json" -type f || echo "No JSON files found"
+# Copy package files first
+COPY backend/package*.json ./
 
-# Temporary: Comment out COPY commands to see debug output
-# COPY backend/package*.json ./
-# RUN npm ci
-# COPY backend/prisma ./prisma/
-# COPY backend/src ./src/
-# COPY backend/tsconfig.json ./
+# Install dependencies
+RUN npm ci
+
+# Copy prisma schema
+COPY backend/prisma ./prisma/
+
+# Copy source code (excluding test files)
+COPY backend/src ./src/
+COPY backend/tsconfig.json ./
 
 # Generate Prisma client
 RUN npx prisma generate
