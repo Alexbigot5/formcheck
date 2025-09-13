@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { parse } from 'csv-parse/sync';
 import { authenticate } from '../../middleware/auth';
@@ -52,7 +52,7 @@ export async function registerLinkedInRoutes(app: FastifyInstance) {
   /**
    * POST /ingest/linkedin-csv - Process LinkedIn CSV upload
    */
-  app.post('/ingest/linkedin-csv', {
+  app.post('/ingest/linkedin-csv', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -299,7 +299,7 @@ export async function registerLinkedInRoutes(app: FastifyInstance) {
   /**
    * GET /ingest/linkedin-csv/template - Download CSV template
    */
-  app.get('/ingest/linkedin-csv/template', {
+  app.get('/ingest/linkedin-csv/template', async (request, reply: FastifyReply) => {
     const template = {
       filename: 'linkedin_import_template.csv',
       headers: [
@@ -600,7 +600,7 @@ export async function analyzeLinkedInCsv(csvContent: string): Promise<{
  * POST /ingest/linkedin-csv/analyze - Analyze CSV before import
  */
 export async function registerLinkedInAnalysisRoute(app: FastifyInstance) {
-  app.post('/ingest/linkedin-csv/analyze', {
+  app.post('/ingest/linkedin-csv/analyze', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     try {
       // Get uploaded file
       const data = await request.file();

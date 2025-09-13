@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -25,7 +25,7 @@ export async function registerInboxRoutes(app: FastifyInstance) {
   /**
    * POST /ingest/inbox/sync - Manual inbox sync for testing
    */
-  app.post('/ingest/inbox/sync', {
+  app.post('/ingest/inbox/sync', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { integrationId } = request.body as z.infer<typeof manualSyncSchema>;
     const teamId = (request as any).teamId;
 
@@ -124,7 +124,7 @@ export async function registerInboxRoutes(app: FastifyInstance) {
   /**
    * GET /ingest/inbox/status - Get inbox integration status
    */
-  app.get('/ingest/inbox/status', {
+  app.get('/ingest/inbox/status', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -171,7 +171,7 @@ export async function registerInboxRoutes(app: FastifyInstance) {
   /**
    * POST /ingest/inbox/start - Start email listener for integration
    */
-  app.post('/ingest/inbox/start', {
+  app.post('/ingest/inbox/start', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { integrationId } = request.body as { integrationId: string };
     const teamId = (request as any).teamId;
 
@@ -224,7 +224,7 @@ export async function registerInboxRoutes(app: FastifyInstance) {
   /**
    * POST /ingest/inbox/stop - Stop email listener for integration
    */
-  app.post('/ingest/inbox/stop', {
+  app.post('/ingest/inbox/stop', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { integrationId } = request.body as { integrationId: string };
     const teamId = (request as any).teamId;
 
@@ -277,7 +277,7 @@ export async function registerInboxRoutes(app: FastifyInstance) {
   /**
    * GET /ingest/inbox/recent - Get recent email messages
    */
-  app.get('/ingest/inbox/recent', {
+  app.get('/ingest/inbox/recent', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { limit, integrationId } = request.query as { limit: number; integrationId?: string };
     const teamId = (request as any).teamId;
 

@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -10,7 +10,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
   /**
    * GET /oauth/hubspot/start - Start HubSpot OAuth flow
    */
-  app.get('/oauth/hubspot/start', {
+  app.get('/oauth/hubspot/start', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { redirectUrl } = request.query as { redirectUrl?: string };
     const teamId = (request as any).teamId;
     const userId = (request as any).user?.id;
@@ -64,7 +64,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
   /**
    * GET /oauth/salesforce/start - Start Salesforce OAuth flow
    */
-  app.get('/oauth/salesforce/start', {
+  app.get('/oauth/salesforce/start', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { redirectUrl } = request.query as { redirectUrl?: string };
     const teamId = (request as any).teamId;
     const userId = (request as any).user?.id;
@@ -106,7 +106,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
   /**
    * POST /oauth/hubspot/callback - Handle HubSpot OAuth callback
    */
-  app.post('/oauth/hubspot/callback', {
+  app.post('/oauth/hubspot/callback', async (request, reply: FastifyReply) => {
     const { code, state } = request.body as { code: string; state: string };
 
     try {
@@ -206,7 +206,7 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
   /**
    * POST /oauth/salesforce/callback - Handle Salesforce OAuth callback
    */
-  app.post('/oauth/salesforce/callback', {
+  app.post('/oauth/salesforce/callback', async (request, reply: FastifyReply) => {
     const { code, state } = request.body as { code: string; state: string };
 
     try {

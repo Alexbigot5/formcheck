@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -10,7 +10,7 @@ export async function registerCrmSyncRoutes(app: FastifyInstance) {
   /**
    * POST /crm/sync/lead/:id - Sync lead to CRM
    */
-  app.post('/crm/sync/lead/:id', {
+  app.post('/crm/sync/lead/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const { dryRun, provider } = request.query as { dryRun?: string; provider?: string };
     const teamId = (request as any).teamId;
@@ -113,7 +113,7 @@ export async function registerCrmSyncRoutes(app: FastifyInstance) {
   /**
    * GET /crm/providers - Get available CRM providers
    */
-  app.get('/crm/providers', {
+  app.get('/crm/providers', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {

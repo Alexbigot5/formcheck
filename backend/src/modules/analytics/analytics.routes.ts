@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -16,7 +16,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
   /**
    * GET /analytics/overview - Comprehensive analytics overview
    */
-  app.get('/analytics/overview', {
+  app.get('/analytics/overview', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { days, timezone } = request.query as z.infer<typeof overviewQuerySchema>;
     const teamId = (request as any).teamId;
 

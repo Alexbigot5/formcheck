@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -46,7 +46,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * POST /enrich/lead - Enrich a single lead
    */
-  app.post('/enrich/lead', {
+  app.post('/enrich/lead', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const leadData = request.body as z.infer<typeof enrichLeadSchema>;
     const teamId = (request as any).teamId;
 
@@ -76,7 +76,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * POST /enrich/batch - Batch enrich multiple leads
    */
-  app.post('/enrich/batch', {
+  app.post('/enrich/batch', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { leads } = request.body as { leads: z.infer<typeof enrichLeadSchema>[] };
     const teamId = (request as any).teamId;
 
@@ -107,7 +107,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * GET /enrich/stats - Get enrichment statistics
    */
-  app.get('/enrich/stats', {
+  app.get('/enrich/stats', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { days } = request.query as { days: number };
     const teamId = (request as any).teamId;
 
@@ -126,7 +126,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * GET /enrich/competitors - Get competitor configuration
    */
-  app.get('/enrich/competitors', {
+  app.get('/enrich/competitors', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -144,7 +144,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * PUT /enrich/competitors - Update competitor configuration
    */
-  app.put('/enrich/competitors', {
+  app.put('/enrich/competitors', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const configUpdate = request.body as z.infer<typeof competitorConfigSchema>;
     const teamId = (request as any).teamId;
 
@@ -168,7 +168,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * POST /enrich/competitors - Add new competitor
    */
-  app.post('/enrich/competitors', {
+  app.post('/enrich/competitors', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const competitor = request.body as z.infer<typeof competitorEntrySchema>;
     const teamId = (request as any).teamId;
 
@@ -191,7 +191,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * DELETE /enrich/competitors/:name - Remove competitor
    */
-  app.delete('/enrich/competitors/:name', {
+  app.delete('/enrich/competitors/:name', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { name } = request.params as { name: string };
     const teamId = (request as any).teamId;
 
@@ -214,7 +214,7 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
   /**
    * GET /enrich/competitors/stats - Get competitor statistics
    */
-  app.get('/enrich/competitors/stats', {
+  app.get('/enrich/competitors/stats', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { days } = request.query as { days: number };
     const teamId = (request as any).teamId;
 

@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -66,7 +66,7 @@ export async function registerInstagramRoutes(app: FastifyInstance) {
   /**
    * POST /ingest/instagram/test - Process Instagram DM payload
    */
-  app.post('/ingest/instagram/test', {
+  app.post('/ingest/instagram/test', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const dmPayload = request.body as InstagramDmPayload;
     const teamId = (request as any).teamId;
 
@@ -279,7 +279,7 @@ export async function registerInstagramRoutes(app: FastifyInstance) {
   /**
    * GET /ingest/instagram/recent - Get recent Instagram DMs
    */
-  app.get('/ingest/instagram/recent', {
+  app.get('/ingest/instagram/recent', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { limit, integrationId } = request.query as { limit: number; integrationId?: string };
     const teamId = (request as any).teamId;
 
