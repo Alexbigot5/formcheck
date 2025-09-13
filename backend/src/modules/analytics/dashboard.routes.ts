@@ -18,10 +18,13 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/overview - Get dashboard overview metrics
    */
-  app.get('/api/dashboard/overview', {
-    schema: { querystring: analyticsQuerySchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const { dateRange, groupBy } = request.query as z.infer<typeof analyticsQuerySchema>;
+  app.get('/api/dashboard/overview', async (request: AuthenticatedRequest, reply) => {
+    // Validate query parameters
+    const parsed = analyticsQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid query parameters', details: parsed.error });
+    }
+    const { dateRange, groupBy } = parsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -168,10 +171,13 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/performance - Get performance metrics
    */
-  app.get('/api/dashboard/performance', {
-    schema: { querystring: analyticsQuerySchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const { dateRange } = request.query as z.infer<typeof analyticsQuerySchema>;
+  app.get('/api/dashboard/performance', async (request: AuthenticatedRequest, reply) => {
+    // Validate query parameters
+    const parsed = analyticsQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid query parameters', details: parsed.error });
+    }
+    const { dateRange } = parsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -313,14 +319,16 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/recent-leads - Get recent leads
    */
-  app.get('/api/dashboard/recent-leads', {
-    schema: {
-      querystring: z.object({
-        limit: z.coerce.number().min(1).max(50).default(10)
-      })
+  app.get('/api/dashboard/recent-leads', async (request: AuthenticatedRequest, reply) => {
+    // Validate query parameters
+    const limitSchema = z.object({
+      limit: z.coerce.number().min(1).max(50).default(10)
+    });
+    const parsed = limitSchema.safeParse(request.query);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid query parameters', details: parsed.error });
     }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const { limit } = request.query as { limit: number };
+    const { limit } = parsed.data;
     const teamId = request.teamId!;
 
     try {
