@@ -47,20 +47,13 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * POST /api/leads - Create a new lead with deduplication
    */
-  app.post('/api/leads', {
-    schema: {
-      body: createLeadSchema,
-      response: {
-        201: z.object({
-          action: z.enum(['created', 'merged', 'skipped']),
-          leadId: z.string(),
-          duplicateId: z.string().optional(),
-          message: z.string()
-        })
-      }
+  app.post('/api/leads', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = createLeadSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
     }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const leadData = request.body as z.infer<typeof createLeadSchema>;
+    const leadData = parsed.data;
     const teamId = (request as any).teamId;
 
     try {
