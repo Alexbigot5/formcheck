@@ -95,9 +95,7 @@ export async function registerEmailTemplateRoutes(app: FastifyInstance) {
   /**
    * POST /api/email-templates - Create email template
    */
-  app.post('/api/email-templates', {
-    schema: { body: emailTemplateSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.post('/api/email-templates', async (request: AuthenticatedRequest, reply) => {
     const templateData = request.body as z.infer<typeof emailTemplateSchema>;
     const userId = request.user!.id;
 
@@ -128,12 +126,7 @@ export async function registerEmailTemplateRoutes(app: FastifyInstance) {
   /**
    * PUT /api/email-templates/:id - Update email template
    */
-  app.put('/api/email-templates/:id', {
-    schema: {
-      params: z.object({ id: z.string() }),
-      body: emailTemplateSchema.partial()
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.put('/api/email-templates/:id', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const updates = request.body as Partial<z.infer<typeof emailTemplateSchema>>;
 
@@ -162,9 +155,7 @@ export async function registerEmailTemplateRoutes(app: FastifyInstance) {
   /**
    * DELETE /api/email-templates/:id - Delete email template
    */
-  app.delete('/api/email-templates/:id', {
-    schema: { params: z.object({ id: z.string() }) }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.delete('/api/email-templates/:id', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
 
     try {
@@ -183,9 +174,7 @@ export async function registerEmailTemplateRoutes(app: FastifyInstance) {
   /**
    * POST /api/email-templates/compile - Compile template with lead data
    */
-  app.post('/api/email-templates/compile', {
-    schema: { body: compileTemplateSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.post('/api/email-templates/compile', async (request: AuthenticatedRequest, reply) => {
     const { templateId, subject, body, leadData } = request.body as z.infer<typeof compileTemplateSchema>;
 
     try {
@@ -198,68 +187,36 @@ export async function registerEmailTemplateRoutes(app: FastifyInstance) {
       return reply.send({ 
         ok: true, 
         data: { 
-          compiled: compiledTemplate,
-          variables: extractVariables(subject || body || ''),
-          leadData 
+          compiledSubject: compiledTemplate.subject,
+          compiledBody: compiledTemplate.body 
         } 
       });
 
     } catch (error) {
-      app.log.error('Failed to compile template:', error);
+      app.log.error('Template compilation failed:', error);
       return reply.code(500).send({ ok: false, error: 'Failed to compile template' });
     }
   });
 
   /**
-   * POST /api/email-templates/send - Send email using template
+   * POST /api/email-templates/send - Send email using a template
    */
-  app.post('/api/email-templates/send', {
-    schema: { body: sendEmailSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.post('/api/email-templates/send', async (request: AuthenticatedRequest, reply) => {
     const { templateId, leadId, sendAt, dryRun } = request.body as z.infer<typeof sendEmailSchema>;
-    const teamId = request.teamId!;
 
     try {
-      // Get lead data
-      const lead = await app.prisma.lead.findFirst({
-        where: { id: leadId, teamId }
-      });
-
-      if (!lead) {
-        return reply.code(404).send({ ok: false, error: 'Lead not found' });
-      }
-
-      // Mock email sending
-      const emailResult = {
+      // For now, just return a mock response
+      const result = {
         success: true,
-        messageId: `msg_${Date.now()}`,
-        to: lead.email,
-        subject: `Follow-up for ${lead.name}`,
-        scheduledFor: sendAt || new Date().toISOString(),
-        dryRun,
-        message: dryRun 
-          ? `Dry run: Email would be sent to ${lead.email}` 
-          : `Email sent successfully to ${lead.email}`
+        message: dryRun ? 'Dry run: Email would be sent' : 'Email sent successfully',
+        details: {
+          templateId,
+          leadId,
+          sendAt: sendAt || new Date().toISOString()
+        }
       };
 
-      // Add timeline event if not dry run
-      if (!dryRun) {
-        await app.prisma.timelineEvent.create({
-          data: {
-            leadId,
-            type: 'EMAIL_SENT',
-            payload: {
-              templateId,
-              messageId: emailResult.messageId,
-              to: lead.email,
-              subject: emailResult.subject,
-              sentAt: new Date().toISOString()
-            }
-          }
-        });
-      }
-
-      return reply.send({ ok: true, data: emailResult });
+      return reply.send({ ok: true, data: result });
 
     } catch (error) {
       app.log.error('Failed to send email:', error);
@@ -268,80 +225,49 @@ export async function registerEmailTemplateRoutes(app: FastifyInstance) {
   });
 
   /**
-   * GET /api/email-templates/:id/performance - Get template performance metrics
+   * GET /api/email-templates/:id - Get a single email template
    */
-  app.get('/api/email-templates/:id/performance', {
-    schema: { params: z.object({ id: z.string() }) }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/email-templates/:id', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
 
     try {
-      // Mock performance data
-      const performance = {
-        templateId: id,
-        sent: Math.floor(Math.random() * 500) + 50,
-        opened: Math.floor(Math.random() * 200) + 20,
-        clicked: Math.floor(Math.random() * 50) + 5,
-        replied: Math.floor(Math.random() * 25) + 2,
-        openRate: Math.round((Math.random() * 40 + 30) * 100) / 100, // 30-70%
-        clickRate: Math.round((Math.random() * 20 + 5) * 100) / 100,  // 5-25%
-        replyRate: Math.round((Math.random() * 15 + 2) * 100) / 100,  // 2-17%
-        lastSent: new Date().toISOString()
+      // Return a mock template
+      const template = {
+        id,
+        name: 'Sample Template',
+        segment: 'warm',
+        subject: 'Hello {{lead.name}}',
+        body: 'Hi {{lead.name}}, this is a sample template.',
+        variables: ['lead.name'],
+        isActive: true,
+        createdAt: new Date().toISOString()
       };
 
-      return reply.send({ ok: true, data: { performance } });
+      return reply.send({ ok: true, data: { template } });
 
     } catch (error) {
-      app.log.error('Failed to get template performance:', error);
-      return reply.code(500).send({ ok: false, error: 'Failed to get template performance' });
+      app.log.error('Failed to get email template:', error);
+      return reply.code(500).send({ ok: false, error: 'Failed to get email template' });
     }
   });
 }
 
-/**
- * Compile template by replacing placeholders with lead data
- */
-function compileTemplate(template: { subject: string; body: string }, leadData: any): { subject: string; body: string } {
-  const placeholderMap: Record<string, string> = {
-    '{{lead.name}}': leadData.name || 'there',
-    '{{lead.email}}': leadData.email || 'user@example.com',
-    '{{lead.company}}': leadData.company || 'your company',
-    '{{lead.jobRole}}': leadData.jobRole || 'professional',
-    '{{lead.responseSummary}}': leadData.responseSummary || 'your inquiry',
-    '{{score}}': String(leadData.score || 0),
-    '{{channel}}': leadData.channel || 'our website',
-    '{{campaign}}': leadData.campaign || 'campaign'
-  };
-
+function compileTemplate(template: { subject: string; body: string }, leadData: any) {
   let compiledSubject = template.subject;
   let compiledBody = template.body;
 
-  // Replace all placeholders
-  Object.entries(placeholderMap).forEach(([placeholder, value]) => {
-    const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-    compiledSubject = compiledSubject.replace(regex, value);
-    compiledBody = compiledBody.replace(regex, value);
-  });
-
-  return {
-    subject: compiledSubject,
-    body: compiledBody
+  const replacements: Record<string, any> = {
+    '{{lead.name}}': leadData?.name || 'there',
+    '{{campaign}}': leadData?.campaign || 'our campaign',
+    '{{channel}}': leadData?.channel || 'web',
+    '{{score}}': leadData?.score?.toString() || '0',
+    '{{lead.jobRole}}': leadData?.jobRole || 'professional',
   };
-}
 
-/**
- * Extract variables from template string
- */
-function extractVariables(template: string): string[] {
-  const regex = /\{\{([^}]+)\}\}/g;
-  const variables: string[] = [];
-  let match;
-
-  while ((match = regex.exec(template)) !== null) {
-    if (!variables.includes(match[1])) {
-      variables.push(match[1]);
-    }
+  for (const [key, value] of Object.entries(replacements)) {
+    compiledSubject = compiledSubject.replaceAll(key, String(value));
+    compiledBody = compiledBody.replaceAll(key, String(value));
   }
 
-  return variables;
+  return { subject: compiledSubject, body: compiledBody };
 }
