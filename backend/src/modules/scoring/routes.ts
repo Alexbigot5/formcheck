@@ -103,10 +103,13 @@ export async function registerScoringRoutes(app: FastifyInstance) {
   /**
    * POST /api/scoring/config - Create or update scoring configuration
    */
-  app.post('/api/scoring/config', {
-    schema: { body: scoringConfigSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const configData = request.body as z.infer<typeof scoringConfigSchema>;
+  app.post('/api/scoring/config', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = scoringConfigSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const configData = parsed.data;
     const teamId = request.teamId!;
     const userId = request.user!.id;
 
@@ -137,10 +140,13 @@ export async function registerScoringRoutes(app: FastifyInstance) {
   /**
    * POST /api/scoring/test - Test scoring rules against sample lead
    */
-  app.post('/api/scoring/test', {
-    schema: { body: testScoringSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const leadData = request.body as z.infer<typeof testScoringSchema>;
+  app.post('/api/scoring/test', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = testScoringSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const leadData = parsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -170,10 +176,13 @@ export async function registerScoringRoutes(app: FastifyInstance) {
   /**
    * POST /api/scoring/rules - Create scoring rule
    */
-  app.post('/api/scoring/rules', {
-    schema: { body: scoringRuleSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const ruleData = request.body as z.infer<typeof scoringRuleSchema>;
+  app.post('/api/scoring/rules', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = scoringRuleSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const ruleData = parsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -203,14 +212,14 @@ export async function registerScoringRoutes(app: FastifyInstance) {
   /**
    * PUT /api/scoring/rules/:id - Update scoring rule
    */
-  app.put('/api/scoring/rules/:id', {
-    schema: {
-      params: z.object({ id: z.string() }),
-      body: scoringRuleSchema.partial()
+  app.put('/api/scoring/rules/:id', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const bodyParsed = scoringRuleSchema.partial().safeParse(request.body);
+    if (!bodyParsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: bodyParsed.error });
     }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
-    const updates = request.body as Partial<z.infer<typeof scoringRuleSchema>>;
+    const updates = bodyParsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -230,9 +239,7 @@ export async function registerScoringRoutes(app: FastifyInstance) {
   /**
    * DELETE /api/scoring/rules/:id - Delete scoring rule
    */
-  app.delete('/api/scoring/rules/:id', {
-    schema: { params: z.object({ id: z.string() }) }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.delete('/api/scoring/rules/:id', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const teamId = request.teamId!;
 
