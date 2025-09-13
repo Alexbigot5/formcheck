@@ -338,7 +338,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * GET /api/leads/:id - Get lead details
    */
-  app.get('/api/leads/:id', {
+  app.get('/api/leads/:id', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const teamId = (request as any).teamId;
 
@@ -581,7 +581,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * POST /api/leads/:id/timeline - Add timeline event
    */
-  app.post('/api/leads/:id/timeline', {
+  app.post('/api/leads/:id/timeline', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { type, payload } = request.body as any;
     const teamId = (request as any).teamId;
@@ -758,7 +758,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * POST /messages - Create message and handle first touch SLA
    */
-  app.post('/messages', {
+  app.post('/messages', async (request: AuthenticatedRequest, reply) => {
     const { leadId, direction, channel, subject, body, meta } = request.body as any;
     const teamId = (request as any).teamId;
     const userId = (request as any).user?.id || 'system';
