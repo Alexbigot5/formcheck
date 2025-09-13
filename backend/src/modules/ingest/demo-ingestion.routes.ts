@@ -42,10 +42,13 @@ export async function registerDemoIngestionRoutes(app: FastifyInstance) {
   /**
    * POST /api/ingest/webhook - Generic webhook lead ingestion
    */
-  app.post('/api/ingest/webhook', {
-    schema: { body: webhookLeadSchema }
-  }, async (request, reply) => {
-    const leadData = request.body as z.infer<typeof webhookLeadSchema>;
+  app.post('/api/ingest/webhook', async (request, reply) => {
+    // Validate request body
+    const parsed = webhookLeadSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const leadData = parsed.data;
 
     try {
       // Create lead with scoring
@@ -71,10 +74,14 @@ export async function registerDemoIngestionRoutes(app: FastifyInstance) {
    * POST /api/ingest/email - Email ingestion endpoint
    */
   app.post('/api/ingest/email', {
-    preHandler: [authenticateSupabase],
-    schema: { body: emailIngestionSchema }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
-    const emailData = request.body as z.infer<typeof emailIngestionSchema>;
+    // Validate request body
+    const parsed = emailIngestionSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const emailData = parsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -136,10 +143,14 @@ export async function registerDemoIngestionRoutes(app: FastifyInstance) {
    * POST /api/ingest/social - Social media ingestion
    */
   app.post('/api/ingest/social', {
-    preHandler: [authenticateSupabase],
-    schema: { body: socialMediaSchema }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
-    const socialData = request.body as z.infer<typeof socialMediaSchema>;
+    // Validate request body
+    const parsed = socialMediaSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const socialData = parsed.data;
     const teamId = request.teamId!;
 
     try {
