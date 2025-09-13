@@ -196,7 +196,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * GET /api/leads - List leads with filtering and pagination
    */
-  app.get('/api/leads', {
+  app.get('/api/leads', async (request: AuthenticatedRequest, reply) => {
     const { 
       page, 
       pageSize, 
