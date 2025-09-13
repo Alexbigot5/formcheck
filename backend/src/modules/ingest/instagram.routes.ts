@@ -67,34 +67,6 @@ export async function registerInstagramRoutes(app: FastifyInstance) {
    * POST /ingest/instagram/test - Process Instagram DM payload
    */
   app.post('/ingest/instagram/test', {
-    schema: {
-      body: instagramDmSchema,
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          leadId: z.string(),
-          messageId: z.string(),
-          action: z.enum(['created', 'merged', 'updated']),
-          duplicateId: z.string().optional(),
-          score: z.number(),
-          band: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-          tags: z.array(z.string()),
-          ownerId: z.string().optional(),
-          pool: z.string().optional(),
-          sla: z.object({
-            targetAt: z.string(),
-            minutes: z.number()
-          }).optional(),
-          message: z.string(),
-          trace: z.object({
-            enrichment: z.array(z.string()),
-            scoring: z.array(z.string()),
-            routing: z.array(z.string())
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const dmPayload = request.body as InstagramDmPayload;
     const teamId = (request as any).teamId;
 
@@ -308,33 +280,6 @@ export async function registerInstagramRoutes(app: FastifyInstance) {
    * GET /ingest/instagram/recent - Get recent Instagram DMs
    */
   app.get('/ingest/instagram/recent', {
-    schema: {
-      querystring: z.object({
-        limit: z.coerce.number().min(1).max(100).default(20),
-        integrationId: z.string().cuid().optional()
-      }),
-      response: {
-        200: z.object({
-          messages: z.array(z.object({
-            id: z.string(),
-            leadId: z.string(),
-            username: z.string(),
-            displayName: z.string().optional(),
-            messageType: z.string(),
-            text: z.string().optional(),
-            createdAt: z.string(),
-            lead: z.object({
-              name: z.string().nullable(),
-              company: z.string().nullable(),
-              score: z.number(),
-              scoreBand: z.string()
-            }).nullable()
-          })),
-          total: z.number()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { limit, integrationId } = request.query as { limit: number; integrationId?: string };
     const teamId = (request as any).teamId;
 

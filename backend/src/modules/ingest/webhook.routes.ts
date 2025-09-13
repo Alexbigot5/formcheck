@@ -232,19 +232,6 @@ export async function registerWebhookIngestionRoutes(app: FastifyInstance) {
    * POST /ingest/webhook/test - Test webhook ingestion without HMAC
    */
   app.post('/ingest/webhook/test', {
-    schema: {
-      body: webhookPayloadSchema,
-      response: {
-        200: z.object({
-          normalized: z.any(),
-          enriched: z.any(),
-          scoring: z.any(),
-          routing: z.any(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request, reply) => {
     const payload = request.body as z.infer<typeof webhookPayloadSchema>;
 
     try {

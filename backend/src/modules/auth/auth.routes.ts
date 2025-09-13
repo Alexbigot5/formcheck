@@ -31,10 +31,6 @@ export async function registerAuthRoutes(app: FastifyInstance) {
    * POST /auth/login - User login
    */
   app.post('/auth/login', {
-    schema: {
-      body: loginSchema
-    }
-  }, async (request, reply) => {
     const { email, password } = request.body as z.infer<typeof loginSchema>;
 
     try {
@@ -83,10 +79,6 @@ export async function registerAuthRoutes(app: FastifyInstance) {
    * POST /auth/register - User registration
    */
   app.post('/auth/register', {
-    schema: {
-      body: registerSchema
-    }
-  }, async (request, reply) => {
     const { email, password, name, company_name } = request.body as z.infer<typeof registerSchema>;
 
     try {
@@ -159,19 +151,6 @@ export async function registerAuthRoutes(app: FastifyInstance) {
    * POST /api/keys - Create a new API key
    */
   app.post('/api/keys', {
-    schema: {
-      body: createApiKeySchema,
-      response: {
-        201: z.object({
-          id: z.string(),
-          name: z.string(),
-          key: z.string(),
-          ipAllowlist: z.array(z.string()).optional(),
-          createdAt: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { name, ipAllowlist } = request.body as z.infer<typeof createApiKeySchema>;
     const teamId = (request as any).teamId;
 
@@ -209,20 +188,6 @@ export async function registerAuthRoutes(app: FastifyInstance) {
    * GET /api/keys - List all API keys for the team
    */
   app.get('/api/keys', {
-    schema: {
-      response: {
-        200: z.object({
-          keys: z.array(z.object({
-            id: z.string(),
-            name: z.string(),
-            ipAllowlist: z.array(z.string()).optional(),
-            createdAt: z.string(),
-            lastUsed: z.string().optional()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -258,18 +223,6 @@ export async function registerAuthRoutes(app: FastifyInstance) {
    * DELETE /api/keys/:id - Delete an API key
    */
   app.delete('/api/keys/:id', {
-    schema: {
-      params: deleteApiKeySchema,
-      response: {
-        200: z.object({
-          message: z.string()
-        }),
-        404: z.object({
-          error: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as z.infer<typeof deleteApiKeySchema>;
     const teamId = (request as any).teamId;
 

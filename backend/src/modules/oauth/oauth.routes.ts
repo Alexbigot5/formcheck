@@ -11,17 +11,6 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
    * GET /oauth/hubspot/start - Start HubSpot OAuth flow
    */
   app.get('/oauth/hubspot/start', {
-    schema: {
-      querystring: z.object({
-        redirectUrl: z.string().url().optional()
-      }),
-      response: {
-        302: z.object({
-          location: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { redirectUrl } = request.query as { redirectUrl?: string };
     const teamId = (request as any).teamId;
     const userId = (request as any).user?.id;
@@ -76,17 +65,6 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
    * GET /oauth/salesforce/start - Start Salesforce OAuth flow
    */
   app.get('/oauth/salesforce/start', {
-    schema: {
-      querystring: z.object({
-        redirectUrl: z.string().url().optional()
-      }),
-      response: {
-        302: z.object({
-          location: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { redirectUrl } = request.query as { redirectUrl?: string };
     const teamId = (request as any).teamId;
     const userId = (request as any).user?.id;
@@ -129,20 +107,6 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
    * POST /oauth/hubspot/callback - Handle HubSpot OAuth callback
    */
   app.post('/oauth/hubspot/callback', {
-    schema: {
-      body: z.object({
-        code: z.string(),
-        state: z.string()
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string(),
-          redirectUrl: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { code, state } = request.body as { code: string; state: string };
 
     try {
@@ -243,20 +207,6 @@ export async function registerOAuthRoutes(app: FastifyInstance) {
    * POST /oauth/salesforce/callback - Handle Salesforce OAuth callback
    */
   app.post('/oauth/salesforce/callback', {
-    schema: {
-      body: z.object({
-        code: z.string(),
-        state: z.string()
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string(),
-          redirectUrl: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { code, state } = request.body as { code: string; state: string };
 
     try {

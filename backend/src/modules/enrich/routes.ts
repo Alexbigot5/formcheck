@@ -47,37 +47,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * POST /enrich/lead - Enrich a single lead
    */
   app.post('/enrich/lead', {
-    schema: {
-      body: enrichLeadSchema,
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          enrichedLead: z.object({
-            email: z.string().optional(),
-            domain: z.string().optional(),
-            company: z.string().optional(),
-            name: z.string().optional(),
-            fields: z.object({
-              enrichment: z.object({
-                companySize: z.string().optional(),
-                revenue: z.string().optional(),
-                location: z.string().optional(),
-                industry: z.string().optional(),
-                isFreeMailbox: z.boolean().optional(),
-                isCompetitor: z.boolean().optional(),
-                emailQuality: z.number().optional(),
-                relationship: z.enum(['competitor', 'partner', 'vendor', 'prospect', 'unknown']).optional(),
-                riskLevel: z.enum(['low', 'medium', 'high']).optional(),
-                enrichmentSources: z.array(z.string()).optional(),
-                enrichedAt: z.string().optional()
-              })
-            })
-          }),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const leadData = request.body as z.infer<typeof enrichLeadSchema>;
     const teamId = (request as any).teamId;
 
@@ -108,20 +77,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * POST /enrich/batch - Batch enrich multiple leads
    */
   app.post('/enrich/batch', {
-    schema: {
-      body: z.object({
-        leads: z.array(enrichLeadSchema).max(100) // Limit batch size
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          processed: z.number(),
-          enrichedLeads: z.array(z.any()),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { leads } = request.body as { leads: z.infer<typeof enrichLeadSchema>[] };
     const teamId = (request as any).teamId;
 
@@ -153,25 +108,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * GET /enrich/stats - Get enrichment statistics
    */
   app.get('/enrich/stats', {
-    schema: {
-      querystring: z.object({
-        days: z.coerce.number().min(1).max(365).default(30)
-      }),
-      response: {
-        200: z.object({
-          totalEnriched: z.number(),
-          enrichmentRate: z.number(),
-          sourceBreakdown: z.record(z.number()),
-          qualityMetrics: z.object({
-            averageEmailQuality: z.number(),
-            freeMailboxRate: z.number(),
-            competitorRate: z.number(),
-            businessDomainRate: z.number()
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { days } = request.query as { days: number };
     const teamId = (request as any).teamId;
 
@@ -191,12 +127,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * GET /enrich/competitors - Get competitor configuration
    */
   app.get('/enrich/competitors', {
-    schema: {
-      response: {
-        200: competitorConfigSchema
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -215,17 +145,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * PUT /enrich/competitors - Update competitor configuration
    */
   app.put('/enrich/competitors', {
-    schema: {
-      body: competitorConfigSchema,
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          config: competitorConfigSchema,
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const configUpdate = request.body as z.infer<typeof competitorConfigSchema>;
     const teamId = (request as any).teamId;
 
@@ -250,16 +169,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * POST /enrich/competitors - Add new competitor
    */
   app.post('/enrich/competitors', {
-    schema: {
-      body: competitorEntrySchema,
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const competitor = request.body as z.infer<typeof competitorEntrySchema>;
     const teamId = (request as any).teamId;
 
@@ -283,18 +192,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * DELETE /enrich/competitors/:name - Remove competitor
    */
   app.delete('/enrich/competitors/:name', {
-    schema: {
-      params: z.object({
-        name: z.string()
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { name } = request.params as { name: string };
     const teamId = (request as any).teamId;
 
@@ -318,27 +215,6 @@ export async function registerEnrichmentRoutes(app: FastifyInstance) {
    * GET /enrich/competitors/stats - Get competitor statistics
    */
   app.get('/enrich/competitors/stats', {
-    schema: {
-      querystring: z.object({
-        days: z.coerce.number().min(1).max(365).default(30)
-      }),
-      response: {
-        200: z.object({
-          totalCompetitorLeads: z.number(),
-          competitorBreakdown: z.array(z.object({
-            name: z.string(),
-            count: z.number(),
-            type: z.string(),
-            riskLevel: z.string()
-          })),
-          recentTrends: z.array(z.object({
-            date: z.string(),
-            count: z.number()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { days } = request.query as { days: number };
     const teamId = (request as any).teamId;
 

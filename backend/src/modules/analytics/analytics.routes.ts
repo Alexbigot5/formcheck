@@ -17,66 +17,6 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
    * GET /analytics/overview - Comprehensive analytics overview
    */
   app.get('/analytics/overview', {
-    schema: {
-      querystring: overviewQuerySchema,
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          data: z.object({
-            summary: z.object({
-              totalLeads: z.number(),
-              newLeads: z.number(),
-              averageScore: z.number(),
-              conversionRate: z.number(),
-              meetingConversions: z.number(),
-              meetingConversionRate: z.number()
-            }),
-            sourceBreakdown: z.array(z.object({
-              source: z.string(),
-              count: z.number(),
-              percentage: z.number()
-            })),
-            leadsPerDay: z.array(z.object({
-              date: z.string(),
-              count: z.number(),
-              cumulative: z.number()
-            })),
-            slaMetrics: z.object({
-              hitRate: z.number(),
-              averageResponseTime: z.number(),
-              totalSlaClocks: z.number(),
-              satisfiedCount: z.number(),
-              escalatedCount: z.number()
-            }),
-            responseTimeDistribution: z.array(z.object({
-              bucket: z.string(),
-              count: z.number(),
-              percentage: z.number()
-            })),
-            scoreDistribution: z.array(z.object({
-              band: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-              count: z.number(),
-              percentage: z.number()
-            })),
-            topSources: z.array(z.object({
-              source: z.string(),
-              count: z.number(),
-              averageScore: z.number(),
-              conversionRate: z.number()
-            })),
-            ownerPerformance: z.array(z.object({
-              ownerId: z.string(),
-              ownerName: z.string(),
-              ownerEmail: z.string(),
-              assignedLeads: z.number(),
-              averageResponseTime: z.number(),
-              slaHitRate: z.number()
-            }))
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { days, timezone } = request.query as z.infer<typeof overviewQuerySchema>;
     const teamId = (request as any).teamId;
 

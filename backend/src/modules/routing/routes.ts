@@ -56,21 +56,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * POST /routing/test - Test routing rules against sample lead
    */
   app.post('/routing/test', {
-    schema: {
-      body: testRoutingSchema,
-      response: {
-        200: z.object({
-          ownerId: z.string().nullable(),
-          pool: z.string().nullable(),
-          reason: z.string(),
-          trace: z.array(z.any()),
-          alerts: z.array(z.any()),
-          sla: z.number().optional(),
-          priority: z.number().optional()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const leadData = request.body as z.infer<typeof testRoutingSchema>;
     const teamId = (request as any).teamId;
 
@@ -98,14 +83,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * GET /routing/rules - Get routing rules
    */
   app.get('/routing/rules', {
-    schema: {
-      response: {
-        200: z.object({
-          rules: z.array(z.any())
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -122,16 +99,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * POST /routing/rules - Create routing rule
    */
   app.post('/routing/rules', {
-    schema: {
-      body: routingRuleSchema,
-      response: {
-        201: z.object({
-          rule: z.any(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const ruleData = request.body as z.infer<typeof routingRuleSchema>;
     const teamId = (request as any).teamId;
 
@@ -162,19 +129,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * PUT /routing/rules/:id - Update routing rule
    */
   app.put('/routing/rules/:id', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      body: routingRuleSchema.partial(),
-      response: {
-        200: z.object({
-          rule: z.any(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const updates = request.body as Partial<z.infer<typeof routingRuleSchema>>;
     const teamId = (request as any).teamId;
@@ -208,17 +162,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * DELETE /routing/rules/:id - Delete routing rule
    */
   app.delete('/routing/rules/:id', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      response: {
-        200: z.object({
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const teamId = (request as any).teamId;
 
@@ -239,17 +182,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * POST /routing/rules/reorder - Reorder routing rules
    */
   app.post('/routing/rules/reorder', {
-    schema: {
-      body: z.object({
-        ruleIds: z.array(z.string().cuid())
-      }),
-      response: {
-        200: z.object({
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { ruleIds } = request.body as { ruleIds: string[] };
     const teamId = (request as any).teamId;
 
@@ -270,15 +202,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * POST /routing/initialize - Initialize default routing rules
    */
   app.post('/routing/initialize', {
-    schema: {
-      response: {
-        200: z.object({
-          rules: z.array(z.any()),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -299,32 +222,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * GET /owners - Get owners with pools and capacities
    */
   app.get('/owners', {
-    schema: {
-      response: {
-        200: z.object({
-          owners: z.array(z.object({
-            id: z.string(),
-            userId: z.string(),
-            email: z.string(),
-            name: z.string().optional(),
-            capacity: z.number(),
-            currentLoad: z.number(),
-            isActive: z.boolean(),
-            pool: z.string()
-          })),
-          pools: z.array(z.object({
-            name: z.string(),
-            owners: z.number(),
-            strategy: z.string(),
-            roundRobinState: z.object({
-              lastAssignedIndex: z.number(),
-              nextOwner: z.string().optional()
-            }).optional()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -401,18 +298,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * GET /routing/pools - Get owner pools
    */
   app.get('/routing/pools', {
-    schema: {
-      response: {
-        200: z.object({
-          pools: z.array(z.object({
-            name: z.string(),
-            owners: z.number(),
-            strategy: z.string()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -429,21 +314,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * GET /routing/stats - Get routing statistics
    */
   app.get('/routing/stats', {
-    schema: {
-      querystring: z.object({
-        days: z.coerce.number().min(1).max(365).default(30)
-      }),
-      response: {
-        200: z.object({
-          totalLeads: z.number(),
-          routedLeads: z.number(),
-          unroutedLeads: z.number(),
-          poolDistribution: z.record(z.number()),
-          avgRoutingTime: z.number()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { days } = request.query as { days: number };
     const teamId = (request as any).teamId;
 
@@ -461,20 +331,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * POST /routing/batch-test - Test routing against multiple leads
    */
   app.post('/routing/batch-test', {
-    schema: {
-      body: z.object({
-        leads: z.array(testRoutingSchema).max(100) // Limit to 100 leads per batch
-      }),
-      response: {
-        200: z.object({
-          results: z.array(z.object({
-            lead: z.any(),
-            routing: z.any()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { leads } = request.body as { leads: z.infer<typeof testRoutingSchema>[] };
     const teamId = (request as any).teamId;
 
@@ -506,31 +362,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * GET /sla/settings - Get SLA thresholds
    */
   app.get('/sla/settings', {
-    schema: {
-      response: {
-        200: z.object({
-          thresholds: z.object({
-            priority1: z.number(),
-            priority2: z.number(),
-            priority3: z.number(),
-            priority4: z.number(),
-            escalation: z.object({
-              enabled: z.boolean(),
-              levels: z.array(z.object({
-                minutes: z.number(),
-                action: z.string()
-              }))
-            }),
-            business_hours: z.object({
-              enabled: z.boolean(),
-              timezone: z.string(),
-              schedule: z.record(z.any())
-            })
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -585,35 +416,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * PUT /sla/settings - Save SLA thresholds
    */
   app.put('/sla/settings', {
-    schema: {
-      body: z.object({
-        thresholds: z.object({
-          priority1: z.number().min(1),
-          priority2: z.number().min(1),
-          priority3: z.number().min(1),
-          priority4: z.number().min(1),
-          escalation: z.object({
-            enabled: z.boolean(),
-            levels: z.array(z.object({
-              minutes: z.number().min(1),
-              action: z.string()
-            }))
-          }),
-          business_hours: z.object({
-            enabled: z.boolean(),
-            timezone: z.string(),
-            schedule: z.record(z.any())
-          })
-        })
-      }),
-      response: {
-        200: z.object({
-          message: z.string(),
-          thresholds: z.any()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { thresholds } = request.body as { thresholds: any };
     const teamId = (request as any).teamId;
 
@@ -651,34 +453,6 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
    * POST /sla/test - Compute target times for sample lead
    */
   app.post('/sla/test', {
-    schema: {
-      body: z.object({
-        lead: z.object({
-          email: z.string().email().optional(),
-          name: z.string().optional(),
-          company: z.string().optional(),
-          score: z.number().min(0).max(100).default(50),
-          scoreBand: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
-          fields: z.record(z.any()).default({})
-        }),
-        priority: z.number().int().min(1).max(4).default(3)
-      }),
-      response: {
-        200: z.object({
-          priority: z.number(),
-          slaMinutes: z.number(),
-          targetAt: z.string(),
-          dueTime: z.string(),
-          businessHoursAdjusted: z.boolean(),
-          escalationSchedule: z.array(z.object({
-            minutes: z.number(),
-            action: z.string(),
-            scheduledAt: z.string()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { lead, priority } = request.body as { lead: any; priority: number };
     const teamId = (request as any).teamId;
 

@@ -197,34 +197,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * GET /api/leads - List leads with filtering and pagination
    */
   app.get('/api/leads', {
-    schema: {
-      querystring: z.object({
-        page: z.coerce.number().min(1).default(1),
-        pageSize: z.coerce.number().min(1).max(100).default(20),
-        limit: z.coerce.number().min(1).max(100).default(20), // Keep for backward compatibility
-        status: z.enum(['NEW', 'ASSIGNED', 'IN_PROGRESS', 'CLOSED']).optional(),
-        source: z.string().optional(),
-        scoreBand: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
-        ownerId: z.string().optional(),
-        search: z.string().optional(),
-        sla: z.enum(['overdue', 'due_soon', 'all']).optional(),
-        sort: z.enum(['createdAt', 'updatedAt', 'score', 'name', 'company']).default('createdAt'),
-        order: z.enum(['asc', 'desc']).default('desc'),
-        filter: z.string().optional() // JSON string for complex filters
-      }),
-      response: {
-        200: z.object({
-          leads: z.array(z.any()),
-          pagination: z.object({
-            page: z.number(),
-            limit: z.number(),
-            total: z.number(),
-            totalPages: z.number()
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { 
       page, 
       pageSize, 
@@ -367,12 +339,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * GET /api/leads/:id - Get lead details
    */
   app.get('/api/leads/:id', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      })
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const teamId = (request as any).teamId;
 
@@ -412,32 +378,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * GET /leads/:id/timeline - Get merged timeline of Messages + TimelineEvents
    */
   app.get('/leads/:id/timeline', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      querystring: z.object({
-        limit: z.coerce.number().min(1).max(100).default(50),
-        offset: z.coerce.number().min(0).default(0)
-      }),
-      response: {
-        200: z.object({
-          timeline: z.array(z.object({
-            id: z.string(),
-            type: z.enum(['message', 'event']),
-            timestamp: z.string(),
-            data: z.any()
-          })),
-          pagination: z.object({
-            limit: z.number(),
-            offset: z.number(),
-            total: z.number(),
-            hasMore: z.boolean()
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { limit, offset } = request.query as { limit: number; offset: number };
     const teamId = (request as any).teamId;
@@ -562,13 +502,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * PUT /api/leads/:id - Update lead
    */
   app.put('/api/leads/:id', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      body: updateLeadSchema
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const updateData = request.body as z.infer<typeof updateLeadSchema>;
     const teamId = (request as any).teamId;
@@ -616,17 +549,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * POST /api/leads/analyze-dedupe - Analyze potential duplicates without creating
    */
   app.post('/api/leads/analyze-dedupe', {
-    schema: {
-      body: analyzeDedupeSchema,
-      response: {
-        200: z.object({
-          keys: z.any(),
-          matches: z.array(z.any()),
-          recommendation: z.string().nullable()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const leadData = request.body as z.infer<typeof analyzeDedupeSchema>;
     const teamId = (request as any).teamId;
 
@@ -644,13 +566,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * POST /api/leads/:primaryId/merge/:duplicateId/preview - Preview merge operation
    */
   app.post('/api/leads/:primaryId/merge/:duplicateId/preview', {
-    schema: {
-      params: z.object({
-        primaryId: z.string().cuid(),
-        duplicateId: z.string().cuid()
-      })
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { primaryId, duplicateId } = request.params as { primaryId: string; duplicateId: string };
 
     try {
@@ -667,16 +582,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * POST /api/leads/:id/timeline - Add timeline event
    */
   app.post('/api/leads/:id/timeline', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      body: z.object({
-        type: z.enum(['FORM_SUBMISSION', 'EMAIL_RECEIVED', 'EMAIL_SENT', 'DM_RECEIVED', 'DM_SENT', 'CRM_SYNC', 'FOLLOW_UP', 'NOTE_ADDED', 'CALL_LOGGED', 'STATUS_CHANGED', 'SCORE_UPDATED']),
-        payload: z.record(z.any())
-      })
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { type, payload } = request.body as any;
     const teamId = (request as any).teamId;
@@ -714,23 +619,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * PUT /leads/:id/score - Update lead score
    */
   app.put('/leads/:id/score', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      body: z.object({
-        score: z.number().int().min(0).max(100),
-        scoreBand: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-        reason: z.string().optional()
-      }),
-      response: {
-        200: z.object({
-          lead: z.any(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { score, scoreBand, reason } = request.body as { score: number; scoreBand: string; reason?: string };
     const teamId = (request as any).teamId;
@@ -790,23 +678,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * PUT /leads/:id/assign - Assign lead to owner
    */
   app.put('/leads/:id/assign', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      body: z.object({
-        ownerId: z.string().cuid(),
-        reason: z.string().optional(),
-        sla: z.number().int().min(1).optional()
-      }),
-      response: {
-        200: z.object({
-          lead: z.any(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { ownerId, reason, sla } = request.body as { ownerId: string; reason?: string; sla?: number };
     const teamId = (request as any).teamId;
@@ -888,26 +759,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * POST /messages - Create message and handle first touch SLA
    */
   app.post('/messages', {
-    schema: {
-      body: z.object({
-        leadId: z.string().cuid(),
-        direction: z.enum(['IN', 'OUT']),
-        channel: z.enum(['FORM', 'EMAIL', 'DM', 'API']),
-        subject: z.string().optional(),
-        body: z.string(),
-        meta: z.record(z.any()).default({})
-      }),
-      response: {
-        200: z.object({
-          message: z.any(),
-          slaUpdate: z.object({
-            satisfied: z.boolean(),
-            clockId: z.string().optional()
-          }).optional()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { leadId, direction, channel, subject, body, meta } = request.body as any;
     const teamId = (request as any).teamId;
     const userId = (request as any).user?.id || 'system';
@@ -1002,27 +853,6 @@ export async function registerLeadRoutes(app: FastifyInstance) {
    * DELETE /leads/:id - Delete lead (GDPR)
    */
   app.delete('/leads/:id', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      querystring: z.object({
-        confirm: z.enum(['true']).optional()
-      }),
-      response: {
-        200: z.object({
-          message: z.string(),
-          deletedItems: z.object({
-            lead: z.boolean(),
-            messages: z.number(),
-            timelineEvents: z.number(),
-            slaClocks: z.number(),
-            dedupeKeys: z.number()
-          })
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { confirm } = request.query as { confirm?: string };
     const teamId = (request as any).teamId;

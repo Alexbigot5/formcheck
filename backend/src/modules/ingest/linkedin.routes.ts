@@ -53,33 +53,6 @@ export async function registerLinkedInRoutes(app: FastifyInstance) {
    * POST /ingest/linkedin-csv - Process LinkedIn CSV upload
    */
   app.post('/ingest/linkedin-csv', {
-    schema: {
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          processed: z.number(),
-          created: z.number(),
-          merged: z.number(),
-          skipped: z.number(),
-          errors: z.number(),
-          results: z.array(z.object({
-            row: z.number(),
-            email: z.string().optional(),
-            name: z.string().optional(),
-            action: z.enum(['created', 'merged', 'skipped', 'error']),
-            leadId: z.string().optional(),
-            duplicateId: z.string().optional(),
-            score: z.number().optional(),
-            band: z.string().optional(),
-            ownerId: z.string().optional(),
-            error: z.string().optional()
-          })),
-          message: z.string(),
-          dryRun: z.boolean()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -327,17 +300,6 @@ export async function registerLinkedInRoutes(app: FastifyInstance) {
    * GET /ingest/linkedin-csv/template - Download CSV template
    */
   app.get('/ingest/linkedin-csv/template', {
-    schema: {
-      response: {
-        200: z.object({
-          filename: z.string(),
-          headers: z.array(z.string()),
-          sampleData: z.array(z.record(z.string())),
-          columnMappingOptions: z.record(z.string())
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const template = {
       filename: 'linkedin_import_template.csv',
       headers: [
@@ -639,18 +601,6 @@ export async function analyzeLinkedInCsv(csvContent: string): Promise<{
  */
 export async function registerLinkedInAnalysisRoute(app: FastifyInstance) {
   app.post('/ingest/linkedin-csv/analyze', {
-    schema: {
-      response: {
-        200: z.object({
-          totalRows: z.number(),
-          headers: z.array(z.string()),
-          sampleData: z.array(z.record(z.string())),
-          suggestedMapping: columnMappingSchema,
-          issues: z.array(z.string())
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     try {
       // Get uploaded file
       const data = await request.file();

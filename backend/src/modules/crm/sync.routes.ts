@@ -11,33 +11,6 @@ export async function registerCrmSyncRoutes(app: FastifyInstance) {
    * POST /crm/sync/lead/:id - Sync lead to CRM
    */
   app.post('/crm/sync/lead/:id', {
-    schema: {
-      params: z.object({
-        id: z.string().cuid()
-      }),
-      querystring: z.object({
-        dryRun: z.enum(['1', 'true']).optional(),
-        provider: z.string().optional()
-      }),
-      response: {
-        200: z.object({
-          dryRun: z.boolean(),
-          provider: z.string(),
-          payload: z.any(),
-          result: z.any().optional(),
-          diff: z.object({
-            added: z.record(z.any()),
-            changed: z.record(z.object({
-              from: z.any(),
-              to: z.any()
-            })),
-            removed: z.array(z.string())
-          }).optional(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { dryRun, provider } = request.query as { dryRun?: string; provider?: string };
     const teamId = (request as any).teamId;
@@ -141,19 +114,6 @@ export async function registerCrmSyncRoutes(app: FastifyInstance) {
    * GET /crm/providers - Get available CRM providers
    */
   app.get('/crm/providers', {
-    schema: {
-      response: {
-        200: z.object({
-          providers: z.array(z.object({
-            id: z.string(),
-            name: z.string(),
-            configured: z.boolean(),
-            lastSync: z.string().optional()
-          }))
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {

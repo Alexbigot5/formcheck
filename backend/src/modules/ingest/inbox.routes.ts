@@ -26,23 +26,6 @@ export async function registerInboxRoutes(app: FastifyInstance) {
    * POST /ingest/inbox/sync - Manual inbox sync for testing
    */
   app.post('/ingest/inbox/sync', {
-    schema: {
-      body: manualSyncSchema,
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          processed: z.number(),
-          errors: z.number(),
-          messages: z.array(z.object({
-            messageId: z.string(),
-            leadId: z.string().optional(),
-            error: z.string().optional()
-          })),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { integrationId } = request.body as z.infer<typeof manualSyncSchema>;
     const teamId = (request as any).teamId;
 
@@ -142,23 +125,6 @@ export async function registerInboxRoutes(app: FastifyInstance) {
    * GET /ingest/inbox/status - Get inbox integration status
    */
   app.get('/ingest/inbox/status', {
-    schema: {
-      response: {
-        200: z.object({
-          integrations: z.array(z.object({
-            id: z.string(),
-            status: z.enum(['CONNECTED', 'DISCONNECTED', 'ERROR']),
-            lastSeenAt: z.string().nullable(),
-            lastSyncAt: z.string().nullable(),
-            error: z.string().nullable(),
-            listenerActive: z.boolean()
-          })),
-          totalActive: z.number(),
-          totalConfigured: z.number()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -206,18 +172,6 @@ export async function registerInboxRoutes(app: FastifyInstance) {
    * POST /ingest/inbox/start - Start email listener for integration
    */
   app.post('/ingest/inbox/start', {
-    schema: {
-      body: z.object({
-        integrationId: z.string().cuid()
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { integrationId } = request.body as { integrationId: string };
     const teamId = (request as any).teamId;
 
@@ -271,18 +225,6 @@ export async function registerInboxRoutes(app: FastifyInstance) {
    * POST /ingest/inbox/stop - Stop email listener for integration
    */
   app.post('/ingest/inbox/stop', {
-    schema: {
-      body: z.object({
-        integrationId: z.string().cuid()
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { integrationId } = request.body as { integrationId: string };
     const teamId = (request as any).teamId;
 
@@ -336,31 +278,6 @@ export async function registerInboxRoutes(app: FastifyInstance) {
    * GET /ingest/inbox/recent - Get recent email messages
    */
   app.get('/ingest/inbox/recent', {
-    schema: {
-      querystring: z.object({
-        limit: z.coerce.number().min(1).max(100).default(20),
-        integrationId: z.string().cuid().optional()
-      }),
-      response: {
-        200: z.object({
-          messages: z.array(z.object({
-            id: z.string(),
-            leadId: z.string(),
-            subject: z.string(),
-            from: z.string(),
-            createdAt: z.string(),
-            lead: z.object({
-              email: z.string().nullable(),
-              name: z.string().nullable(),
-              company: z.string().nullable(),
-              score: z.number()
-            }).nullable()
-          })),
-          total: z.number()
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
     const { limit, integrationId } = request.query as { limit: number; integrationId?: string };
     const teamId = (request as any).teamId;
 
