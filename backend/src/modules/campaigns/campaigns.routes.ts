@@ -122,10 +122,13 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
   /**
    * POST /api/campaigns - Create campaign
    */
-  app.post('/api/campaigns', {
-    schema: { body: campaignSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const campaignData = request.body as z.infer<typeof campaignSchema>;
+  app.post('/api/campaigns', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = campaignSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const campaignData = parsed.data;
     const teamId = request.teamId!;
 
     try {
@@ -165,9 +168,7 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
   /**
    * GET /api/campaigns/:id - Get single campaign
    */
-  app.get('/api/campaigns/:id', {
-    schema: { params: z.object({ id: z.string() }) }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/campaigns/:id', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
 
     try {
@@ -214,12 +215,7 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
   /**
    * PUT /api/campaigns/:id/status - Update campaign status
    */
-  app.put('/api/campaigns/:id/status', {
-    schema: {
-      params: z.object({ id: z.string() }),
-      body: z.object({ status: z.enum(['draft', 'active', 'paused', 'completed']) })
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
+  app.put('/api/campaigns/:id/status', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { status } = request.body as { status: string };
 
@@ -294,10 +290,13 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
   /**
    * POST /api/sequences - Create email sequence
    */
-  app.post('/api/sequences', {
-    schema: { body: sequenceSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const sequenceData = request.body as z.infer<typeof sequenceSchema>;
+  app.post('/api/sequences', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = sequenceSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const sequenceData = parsed.data;
 
     try {
       const newSequence = {
@@ -377,10 +376,13 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
   /**
    * POST /api/mailbox-pools - Create mailbox pool
    */
-  app.post('/api/mailbox-pools', {
-    schema: { body: mailboxPoolSchema }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const poolData = request.body as z.infer<typeof mailboxPoolSchema>;
+  app.post('/api/mailbox-pools', async (request: AuthenticatedRequest, reply) => {
+    // Validate request body
+    const parsed = mailboxPoolSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'Invalid request body', details: parsed.error });
+    }
+    const poolData = parsed.data;
 
     try {
       const newPool = {
