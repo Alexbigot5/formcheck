@@ -8,8 +8,8 @@ RUN echo "=== BUILD CONTEXT CONTENTS ===" && \
     echo "=== CHECKING FOR BACKEND DIRECTORY ===" && \
     ls -la backend/ || echo "backend directory not found"
 
-# Copy entire backend directory contents
-COPY backend/ ./
+# Copy all files from the current directory (which is /backend when Railway builds)
+COPY . ./
 
 # Install dependencies
 RUN npm ci
