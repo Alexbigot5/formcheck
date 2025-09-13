@@ -27,21 +27,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /api/integrations - Get all integrations status
    */
   app.get('/api/integrations', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      response: {
-        200: z.object({
-          integrations: z.array(z.object({
-            kind: z.string(),
-            status: z.string(),
-            lastSeenAt: z.string().nullable(),
-            lastSyncAt: z.string().nullable(),
-            error: z.string().nullable(),
-            settings: z.any()
-          }))
-        })
-      }
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const teamId = request.teamId!;
 
@@ -77,18 +63,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/mapping - Get current field mapping
    */
   app.get('/integrations/:kind/mapping', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      }),
-      response: {
-        200: z.object({
-          mapping: z.record(z.string()),
-          lastUpdated: z.string().nullable()
-        })
-      }
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { kind } = request.params as { kind: string };
     const teamId = (request as any).teamId;
@@ -120,30 +95,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/health - Get integration health status
    */
   app.get('/integrations/:kind/health', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      }),
-      response: {
-        200: z.object({
-          status: z.string(),
-          lastSeenAt: z.string().nullable(),
-          lastSyncAt: z.string().nullable(),
-          queuedOps: z.number(),
-          recentErrors: z.array(z.object({
-            timestamp: z.string(),
-            error: z.string(),
-            operation: z.string().optional()
-          })),
-          metrics: z.object({
-            totalSyncs: z.number(),
-            successRate: z.number(),
-            avgResponseTime: z.number()
-          })
-        })
-      }
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { kind } = request.params as { kind: string };
     const teamId = (request as any).teamId;
