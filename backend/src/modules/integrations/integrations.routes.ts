@@ -140,20 +140,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/test - Test integration connection
    */
   app.post('/integrations/:kind/test', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      }),
-      response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string(),
-          responseTime: z.number(),
-          details: z.any().optional()
-        })
-      }
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { kind } = request.params as { kind: string };
     const teamId = (request as any).teamId;
@@ -222,17 +209,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * POST /integrations/:kind/disconnect - Disconnect integration
    */
   app.post('/integrations/:kind/disconnect', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      }),
-      response: {
-        200: z.object({
-          message: z.string()
-        })
-      }
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { kind } = request.params as { kind: string };
     const teamId = (request as any).teamId;
@@ -270,18 +247,7 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
    * GET /integrations/:kind/start - Start OAuth flow
    */
   app.get('/integrations/:kind/start', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce'])
-      }),
-      response: {
-        200: z.object({
-          authUrl: z.string().url(),
-          state: z.string()
-        })
-      }
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { kind } = request.params as { kind: string };
     const teamId = (request as any).teamId;
