@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { webhookAuth } from '../../middleware/auth';
 import { deduplicateLead } from '../dedupe/index';
@@ -231,7 +231,7 @@ export async function registerWebhookIngestionRoutes(app: FastifyInstance) {
   /**
    * POST /ingest/webhook/test - Test webhook ingestion without HMAC
    */
-  app.post('/ingest/webhook/test', {
+  app.post('/ingest/webhook/test', async (request, reply: FastifyReply) => {
     const payload = request.body as z.infer<typeof webhookPayloadSchema>;
 
     try {
