@@ -36,12 +36,7 @@ export async function registerDemoCrmRoutes(app: FastifyInstance) {
    * POST /api/integrations/:provider/connect - Connect to CRM (demo)
    */
   app.post('/api/integrations/:provider/connect', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        provider: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      })
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { provider } = request.params as { provider: string };
     const teamId = request.teamId!;
@@ -62,12 +57,7 @@ export async function registerDemoCrmRoutes(app: FastifyInstance) {
    * GET /api/integrations/:provider/fields - Get CRM fields (demo)
    */
   app.get('/api/integrations/:provider/fields', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        provider: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      })
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { provider } = request.params as { provider: string };
 
@@ -101,7 +91,7 @@ export async function registerDemoCrmRoutes(app: FastifyInstance) {
 
     return reply.send({
       ok: true,
-      data: { fields: mockFields[provider] || [] }
+      data: { fields: (mockFields as any)[provider] || [] }
     });
   });
 
@@ -109,16 +99,7 @@ export async function registerDemoCrmRoutes(app: FastifyInstance) {
    * POST /api/crm/sync/lead/:id - Sync lead to CRM (demo)
    */
   app.post('/api/crm/sync/lead/:id', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        id: z.string()
-      }),
-      body: z.object({
-        provider: z.enum(['hubspot', 'salesforce', 'pipedrive']),
-        dryRun: z.boolean().optional().default(false)
-      })
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { provider, dryRun } = request.body as { provider: string; dryRun?: boolean };
@@ -159,7 +140,7 @@ export async function registerDemoCrmRoutes(app: FastifyInstance) {
       if (!dryRun && !lead.externalId) {
         await app.prisma.lead.update({
           where: { id },
-          data: { externalId: syncResult.contactId }
+          data: { externalId: (syncResult as any).contactId }
         });
       }
 
