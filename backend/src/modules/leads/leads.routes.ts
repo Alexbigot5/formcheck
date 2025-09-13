@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -377,7 +377,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * GET /leads/:id/timeline - Get merged timeline of Messages + TimelineEvents
    */
-  app.get('/leads/:id/timeline', {
+  app.get('/leads/:id/timeline', async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const { limit, offset } = request.query as { limit: number; offset: number };
     const teamId = (request as any).teamId;
@@ -618,7 +618,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * PUT /leads/:id/score - Update lead score
    */
-  app.put('/leads/:id/score', {
+  app.put('/leads/:id/score', async (request: AuthenticatedRequest, reply) => {
     const { id } = request.params as { id: string };
     const { score, scoreBand, reason } = request.body as { score: number; scoreBand: string; reason?: string };
     const teamId = (request as any).teamId;
