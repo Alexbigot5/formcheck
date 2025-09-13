@@ -501,7 +501,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * PUT /api/leads/:id - Update lead
    */
-  app.put('/api/leads/:id', {
+  app.put('/api/leads/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const updateData = request.body as z.infer<typeof updateLeadSchema>;
     const teamId = (request as any).teamId;
@@ -548,7 +548,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * POST /api/leads/analyze-dedupe - Analyze potential duplicates without creating
    */
-  app.post('/api/leads/analyze-dedupe', {
+  app.post('/api/leads/analyze-dedupe', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const leadData = request.body as z.infer<typeof analyzeDedupeSchema>;
     const teamId = (request as any).teamId;
 
@@ -565,7 +565,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * POST /api/leads/:primaryId/merge/:duplicateId/preview - Preview merge operation
    */
-  app.post('/api/leads/:primaryId/merge/:duplicateId/preview', {
+  app.post('/api/leads/:primaryId/merge/:duplicateId/preview', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { primaryId, duplicateId } = request.params as { primaryId: string; duplicateId: string };
 
     try {
@@ -677,7 +677,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * PUT /leads/:id/assign - Assign lead to owner
    */
-  app.put('/leads/:id/assign', {
+  app.put('/leads/:id/assign', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const { ownerId, reason, sla } = request.body as { ownerId: string; reason?: string; sla?: number };
     const teamId = (request as any).teamId;
@@ -852,7 +852,7 @@ export async function registerLeadRoutes(app: FastifyInstance) {
   /**
    * DELETE /leads/:id - Delete lead (GDPR)
    */
-  app.delete('/leads/:id', {
+  app.delete('/leads/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const { confirm } = request.query as { confirm?: string };
     const teamId = (request as any).teamId;
