@@ -108,13 +108,7 @@ export async function registerSupabaseAuthRoutes(app: FastifyInstance) {
    * POST /api/auth/profile - Update user profile
    */
   app.post('/api/auth/profile', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      body: z.object({
-        name: z.string().optional(),
-        // Add other updatable fields as needed
-      })
-    }
+    preHandler: [authenticateSupabase]
   }, async (request: AuthenticatedRequest, reply) => {
     const { name } = request.body as { name?: string };
     const userId = request.user!.id;
