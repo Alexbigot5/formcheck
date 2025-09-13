@@ -292,17 +292,32 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
   app.post('/integrations/:kind/callback', {
     preHandler: [authenticateSupabase],
     schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce'])
-      }),
-      body: oauthCallbackSchema,
+      params: {
+        type: 'object',
+        properties: {
+          kind: { type: 'string', enum: ['hubspot', 'salesforce'] }
+        },
+        required: ['kind']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          code: { type: 'string' },
+          state: { type: 'string' }
+        },
+        required: ['code']
+      },
       response: {
-        200: z.object({
-          success: z.boolean(),
-          provider: z.string(),
-          connected: z.boolean(),
-          message: z.string()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            provider: { type: 'string' },
+            connected: { type: 'boolean' },
+            message: { type: 'string' }
+          },
+          required: ['success', 'provider', 'connected', 'message']
+        }
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
@@ -422,14 +437,22 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
   app.delete('/integrations/:kind/disconnect', {
     preHandler: [authenticateSupabase],
     schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce'])
-      }),
+      params: {
+        type: 'object',
+        properties: {
+          kind: { type: 'string', enum: ['hubspot', 'salesforce'] }
+        },
+        required: ['kind']
+      },
       response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          },
+          required: ['success', 'message']
+        }
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
@@ -473,21 +496,36 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
   app.get('/integrations/:kind/fields', {
     preHandler: [authenticateSupabase],
     schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce'])
-      }),
+      params: {
+        type: 'object',
+        properties: {
+          kind: { type: 'string', enum: ['hubspot', 'salesforce'] }
+        },
+        required: ['kind']
+      },
       response: {
-        200: z.object({
-          success: z.boolean(),
-          fields: z.array(z.object({
-            name: z.string(),
-            label: z.string(),
-            type: z.string(),
-            required: z.boolean(),
-            options: z.array(z.string()).optional(),
-            description: z.string().optional()
-          }))
-        })
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            fields: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  label: { type: 'string' },
+                  type: { type: 'string' },
+                  required: { type: 'boolean' },
+                  options: { type: 'array', items: { type: 'string' } },
+                  description: { type: 'string' }
+                },
+                required: ['name', 'label', 'type', 'required']
+              }
+            }
+          },
+          required: ['success', 'fields']
+        }
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
@@ -518,15 +556,29 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
   app.post('/integrations/:kind/mapping', {
     preHandler: [authenticateSupabase],
     schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce'])
-      }),
-      body: fieldMappingSchema,
+      params: {
+        type: 'object',
+        properties: {
+          kind: { type: 'string', enum: ['hubspot', 'salesforce'] }
+        },
+        required: ['kind']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          mapping: { type: 'object', additionalProperties: { type: 'string' } }
+        },
+        required: ['mapping']
+      },
       response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          },
+          required: ['success', 'message']
+        }
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
@@ -577,14 +629,25 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
     preHandler: [authenticateSupabase],
     schema: {
       response: {
-        200: z.object({
-          success: z.boolean(),
-          integrations: z.record(z.object({
-            connected: z.boolean(),
-            lastSync: z.string().optional(),
-            error: z.string().optional()
-          }))
-        })
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            integrations: {
+              type: 'object',
+              additionalProperties: {
+                type: 'object',
+                properties: {
+                  connected: { type: 'boolean' },
+                  lastSync: { type: 'string' },
+                  error: { type: 'string' }
+                },
+                required: ['connected']
+              }
+            }
+          },
+          required: ['success', 'integrations']
+        }
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
@@ -643,10 +706,14 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
     preHandler: [authenticateSupabase],
     schema: {
       response: {
-        200: z.object({
-          success: z.boolean(),
-          message: z.string()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          },
+          required: ['success', 'message']
+        }
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
