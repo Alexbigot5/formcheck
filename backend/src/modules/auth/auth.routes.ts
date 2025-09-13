@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
@@ -30,7 +30,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   /**
    * POST /auth/login - User login
    */
-  app.post('/auth/login', {
+  app.post('/auth/login', async (request, reply: FastifyReply) => {
     const { email, password } = request.body as z.infer<typeof loginSchema>;
 
     try {
@@ -78,7 +78,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   /**
    * POST /auth/register - User registration
    */
-  app.post('/auth/register', {
+  app.post('/auth/register', async (request, reply: FastifyReply) => {
     const { email, password, name, company_name } = request.body as z.infer<typeof registerSchema>;
 
     try {
@@ -150,7 +150,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   /**
    * POST /api/keys - Create a new API key
    */
-  app.post('/api/keys', {
+  app.post('/api/keys', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { name, ipAllowlist } = request.body as z.infer<typeof createApiKeySchema>;
     const teamId = (request as any).teamId;
 
@@ -187,7 +187,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   /**
    * GET /api/keys - List all API keys for the team
    */
-  app.get('/api/keys', {
+  app.get('/api/keys', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -222,7 +222,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   /**
    * DELETE /api/keys/:id - Delete an API key
    */
-  app.delete('/api/keys/:id', {
+  app.delete('/api/keys/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as z.infer<typeof deleteApiKeySchema>;
     const teamId = (request as any).teamId;
 
