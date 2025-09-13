@@ -14,20 +14,13 @@ if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
   supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 }
 
-// Validation schemas
-const verifyTokenSchema = z.object({
-  token: z.string().optional()
-});
+// No validation schemas needed - auth token comes from Authorization header
 
 export async function registerSupabaseAuthRoutes(app: FastifyInstance) {
   /**
    * POST /api/auth/verify - Verify Supabase token and get/create user profile
    */
-  app.post('/api/auth/verify', {
-    schema: {
-      body: verifyTokenSchema
-    }
-  }, async (request, reply) => {
+  app.post('/api/auth/verify', async (request, reply) => {
     try {
       if (!supabase) {
         return reply.code(500).send({ ok: false, error: 'Supabase not configured' });
