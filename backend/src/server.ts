@@ -86,6 +86,15 @@ async function buildServer() {
     throw error;
   }
 
+  // Add reply decorators before registering routes
+  app.decorateReply('sendSuccess', function(data: any, statusCode: number = 200) {
+    return this.code(statusCode).send({ ok: true, data });
+  });
+  
+  app.decorateReply('sendError', function(error: string, statusCode: number = 400) {
+    return this.code(statusCode).send({ ok: false, error });
+  });
+
   // Register routes
   await registerHealthRoutes(app);
   await registerSupabaseAuthRoutes(app); // Use Supabase auth instead
@@ -110,16 +119,7 @@ async function buildServer() {
   await registerCrmSyncRoutes(app);
   await registerOAuthRoutes(app);
 
-  // Add standardized response helpers (removed - using reply decorators only)
-
-  // Add reply decorators
-  app.decorateReply('sendSuccess', function(data: any, statusCode: number = 200) {
-    return this.code(statusCode).send({ ok: true, data });
-  });
-  
-  app.decorateReply('sendError', function(error: string, statusCode: number = 400) {
-    return this.code(statusCode).send({ ok: false, error });
-  });
+  // Reply decorators have been moved before route registration
 
   app.get('/', async () => ({ ok: true, data: { name: 'SmartForms AI Backend', version: '0.1.0' } }));
 
