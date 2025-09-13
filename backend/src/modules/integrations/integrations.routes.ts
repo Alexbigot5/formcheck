@@ -115,59 +115,6 @@ export async function registerIntegrationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * POST /integrations/:kind/mapping - Save field mapping
-   */
-  app.post('/integrations/:kind/mapping', {
-    preHandler: [authenticateSupabase],
-    schema: {
-      params: z.object({
-        kind: z.enum(['hubspot', 'salesforce', 'pipedrive'])
-      }),
-      body: fieldMappingSchema,
-      response: {
-        200: z.object({
-          message: z.string(),
-          mapping: z.record(z.string())
-        })
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
-    const { kind } = request.params as { kind: string };
-    const { mapping } = request.body as { mapping: Record<string, string> };
-    const teamId = (request as any).teamId;
-
-    try {
-      const integration = await app.prisma.integration.findFirst({
-        where: { teamId, kind: kind.toUpperCase() as any }
-      });
-
-      if (!integration) {
-        return reply.code(404).send({ error: 'Integration not found' });
-      }
-
-      // Update settings with new mapping
-      const updatedSettings = {
-        ...integration.settings as any,
-        fieldMapping: mapping,
-        fieldMappingUpdatedAt: new Date().toISOString()
-      };
-
-      await app.prisma.integration.update({
-        where: { id: integration.id },
-        data: { settings: updatedSettings }
-      });
-
-      return reply.send({
-        message: 'Field mapping saved successfully',
-        mapping
-      });
-
-    } catch (error) {
-      app.log.error('Failed to save field mapping:', error);
-      return reply.code(500).send({ error: 'Failed to save field mapping' });
-    }
-  });
 
   /**
    * GET /integrations/:kind/health - Get integration health status
