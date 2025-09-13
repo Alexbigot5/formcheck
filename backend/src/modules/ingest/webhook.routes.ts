@@ -68,20 +68,55 @@ export async function registerWebhookIngestionRoutes(app: FastifyInstance) {
   app.post('/ingest/webhook', {
     preHandler: [webhookAuth],
     schema: {
-      body: webhookPayloadSchema,
+      body: {
+        type: 'object',
+        properties: {
+          event: { type: 'string' },
+          source: { type: 'string', default: 'webhook' },
+          timestamp: { type: 'number' },
+          email: { type: 'string', format: 'email' },
+          name: { type: 'string' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          phone: { type: 'string' },
+          company: { type: 'string' },
+          website: { type: 'string' },
+          formId: { type: 'string' },
+          formName: { type: 'string' },
+          submissionId: { type: 'string' },
+          fields: { type: 'object', additionalProperties: true },
+          customFields: { type: 'object', additionalProperties: true },
+          utm: { type: 'object', additionalProperties: { type: 'string' } },
+          utm_source: { type: 'string' },
+          utm_medium: { type: 'string' },
+          utm_campaign: { type: 'string' },
+          utm_term: { type: 'string' },
+          utm_content: { type: 'string' },
+          gclid: { type: 'string' },
+          referrer: { type: 'string' },
+          ip: { type: 'string' },
+          userAgent: { type: 'string' },
+          metadata: { type: 'object', additionalProperties: true }
+        },
+        additionalProperties: true
+      },
       response: {
-        200: z.object({
-          leadId: z.string(),
-          score: z.number(),
-          band: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-          ownerId: z.string().nullable(),
-          pool: z.string().nullable(),
-          slaTargetAt: z.string().nullable(),
-          action: z.enum(['created', 'merged', 'skipped']),
-          messageId: z.string(),
-          timelineEvents: z.array(z.string()),
-          message: z.string()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string' },
+            score: { type: 'number' },
+            band: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'] },
+            ownerId: { type: ['string', 'null'] },
+            pool: { type: ['string', 'null'] },
+            slaTargetAt: { type: ['string', 'null'] },
+            action: { type: 'string', enum: ['created', 'merged', 'skipped'] },
+            messageId: { type: 'string' },
+            timelineEvents: { type: 'array', items: { type: 'string' } },
+            message: { type: 'string' }
+          },
+          required: ['leadId', 'score', 'band', 'action', 'messageId', 'timelineEvents', 'message']
+        }
       }
     }
   }, async (request, reply) => {

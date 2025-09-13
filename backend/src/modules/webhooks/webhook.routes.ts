@@ -17,12 +17,24 @@ export async function registerWebhookRoutes(app: FastifyInstance) {
   app.post('/webhooks/generic', {
     preHandler: [webhookAuth],
     schema: {
-      body: webhookPayloadSchema,
+      body: {
+        type: 'object',
+        properties: {
+          event: { type: 'string' },
+          data: { type: 'object', additionalProperties: true },
+          timestamp: { type: 'number' }
+        },
+        required: ['event', 'data']
+      },
       response: {
-        200: z.object({
-          received: z.boolean(),
-          timestamp: z.string()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            received: { type: 'boolean' },
+            timestamp: { type: 'string' }
+          },
+          required: ['received', 'timestamp']
+        }
       }
     }
   }, async (request, reply) => {
@@ -69,15 +81,26 @@ export async function registerWebhookRoutes(app: FastifyInstance) {
   app.post('/webhooks/form/:formId', {
     preHandler: [webhookAuth],
     schema: {
-      params: z.object({
-        formId: z.string().cuid()
-      }),
-      body: z.record(z.any()),
+      params: {
+        type: 'object',
+        properties: {
+          formId: { type: 'string' }
+        },
+        required: ['formId']
+      },
+      body: {
+        type: 'object',
+        additionalProperties: true
+      },
       response: {
-        200: z.object({
-          leadId: z.string(),
-          score: z.number()
-        })
+        200: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string' },
+            score: { type: 'number' }
+          },
+          required: ['leadId', 'score']
+        }
       }
     }
   }, async (request, reply) => {
