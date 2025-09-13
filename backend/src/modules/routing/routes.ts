@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../types/auth';
@@ -55,7 +55,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * POST /routing/test - Test routing rules against sample lead
    */
-  app.post('/routing/test', {
+  app.post('/routing/test', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const leadData = request.body as z.infer<typeof testRoutingSchema>;
     const teamId = (request as any).teamId;
 
@@ -82,7 +82,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * GET /routing/rules - Get routing rules
    */
-  app.get('/routing/rules', {
+  app.get('/routing/rules', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -98,7 +98,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * POST /routing/rules - Create routing rule
    */
-  app.post('/routing/rules', {
+  app.post('/routing/rules', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const ruleData = request.body as z.infer<typeof routingRuleSchema>;
     const teamId = (request as any).teamId;
 
@@ -128,7 +128,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * PUT /routing/rules/:id - Update routing rule
    */
-  app.put('/routing/rules/:id', {
+  app.put('/routing/rules/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const updates = request.body as Partial<z.infer<typeof routingRuleSchema>>;
     const teamId = (request as any).teamId;
@@ -161,7 +161,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * DELETE /routing/rules/:id - Delete routing rule
    */
-  app.delete('/routing/rules/:id', {
+  app.delete('/routing/rules/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const teamId = (request as any).teamId;
 
@@ -181,7 +181,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * POST /routing/rules/reorder - Reorder routing rules
    */
-  app.post('/routing/rules/reorder', {
+  app.post('/routing/rules/reorder', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { ruleIds } = request.body as { ruleIds: string[] };
     const teamId = (request as any).teamId;
 
@@ -201,7 +201,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * POST /routing/initialize - Initialize default routing rules
    */
-  app.post('/routing/initialize', {
+  app.post('/routing/initialize', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -221,7 +221,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * GET /owners - Get owners with pools and capacities
    */
-  app.get('/owners', {
+  app.get('/owners', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -297,7 +297,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * GET /routing/pools - Get owner pools
    */
-  app.get('/routing/pools', {
+  app.get('/routing/pools', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -313,7 +313,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * GET /routing/stats - Get routing statistics
    */
-  app.get('/routing/stats', {
+  app.get('/routing/stats', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { days } = request.query as { days: number };
     const teamId = (request as any).teamId;
 
@@ -330,7 +330,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * POST /routing/batch-test - Test routing against multiple leads
    */
-  app.post('/routing/batch-test', {
+  app.post('/routing/batch-test', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { leads } = request.body as { leads: z.infer<typeof testRoutingSchema>[] };
     const teamId = (request as any).teamId;
 
@@ -361,7 +361,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * GET /sla/settings - Get SLA thresholds
    */
-  app.get('/sla/settings', {
+  app.get('/sla/settings', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const teamId = (request as any).teamId;
 
     try {
@@ -415,7 +415,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * PUT /sla/settings - Save SLA thresholds
    */
-  app.put('/sla/settings', {
+  app.put('/sla/settings', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { thresholds } = request.body as { thresholds: any };
     const teamId = (request as any).teamId;
 
@@ -452,7 +452,7 @@ export async function registerRoutingRoutes(app: FastifyInstance) {
   /**
    * POST /sla/test - Compute target times for sample lead
    */
-  app.post('/sla/test', {
+  app.post('/sla/test', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { lead, priority } = request.body as { lead: any; priority: number };
     const teamId = (request as any).teamId;
 
