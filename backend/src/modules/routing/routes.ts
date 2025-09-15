@@ -49,8 +49,7 @@ const routingRuleSchema = z.object({
 });
 
 export async function registerRoutingRoutes(app: FastifyInstance) {
-  // Apply authentication to all routes
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * POST /routing/test - Test routing rules against sample lead

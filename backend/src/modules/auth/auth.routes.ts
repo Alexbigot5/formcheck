@@ -144,8 +144,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
     }
   });
 
-  // Apply authentication middleware to all routes below this point
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option below
 
   /**
    * POST /api/keys - Create a new API key
