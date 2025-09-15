@@ -42,7 +42,7 @@ const analyzeDedupeSchema = z.object({
 
 export async function registerLeadRoutes(app: FastifyInstance) {
   // Apply authentication to all routes except webhook endpoints
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * POST /api/leads - Create a new lead with deduplication

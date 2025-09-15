@@ -41,7 +41,7 @@ const competitorConfigSchema = z.object({
 
 export async function registerEnrichmentRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * POST /enrich/lead - Enrich a single lead

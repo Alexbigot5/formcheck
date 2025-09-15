@@ -70,7 +70,7 @@ const scoringRuleSchema = z.object({
 
 export async function registerScoringRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
-  app.addHook('preHandler', authenticateSupabase);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * GET /api/scoring/config - Get current scoring configuration

@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from '../../types/auth';
 
 export async function registerOAuthRoutes(app: FastifyInstance) {
   // Apply authentication to OAuth start routes
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * GET /oauth/hubspot/start - Start HubSpot OAuth flow

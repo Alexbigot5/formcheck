@@ -13,7 +13,7 @@ const analyticsQuerySchema = z.object({
 
 export async function registerDashboardRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
-  app.addHook('preHandler', authenticateSupabase);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * GET /api/dashboard/overview - Get dashboard overview metrics

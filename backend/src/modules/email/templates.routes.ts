@@ -38,7 +38,7 @@ const sendEmailSchema = z.object({
 
 export async function registerEmailTemplateRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
-  app.addHook('preHandler', authenticateSupabase);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * GET /api/email-templates - Get all email templates

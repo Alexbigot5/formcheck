@@ -61,7 +61,7 @@ type InstagramDmPayload = z.infer<typeof instagramDmSchema>;
 
 export async function registerInstagramRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * POST /ingest/instagram/test - Process Instagram DM payload

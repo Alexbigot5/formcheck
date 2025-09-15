@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from '../../types/auth';
 
 export async function registerCrmSyncRoutes(app: FastifyInstance) {
   // Apply authentication to all routes
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * POST /crm/sync/lead/:id - Sync lead to CRM
