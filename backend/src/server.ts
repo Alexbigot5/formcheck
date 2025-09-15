@@ -121,7 +121,7 @@ async function buildServer() {
 
   // Reply decorators have been moved before route registration
 
-  app.get('/', async () => ({ ok: true, data: { name: 'SmartForms AI Backend', version: '0.1.0' } }));
+  app.get('/', async () => ({ ok: true, service: 'up', name: 'SmartForms AI Backend', version: '0.1.0' }));
 
   return { app, env };
 }
@@ -138,9 +138,13 @@ async function start() {
     const { app, env } = await buildServer();
     console.log('Server built successfully, starting to listen...');
     
-    await app.listen({ port: env.PORT, host: '0.0.0.0' });
-    console.log(`=== SERVER STARTED ON PORT ${env.PORT} ===`);
-    app.log.info(`Server listening on port ${env.PORT}`);
+    // Use Railway's PORT and bind to 0.0.0.0
+    const PORT = Number(process.env.PORT || env.PORT || 3000);
+    const HOST = process.env.HOST || '0.0.0.0';
+    
+    await app.listen({ port: PORT, host: HOST });
+    console.log(`=== SERVER STARTED ON http://${HOST}:${PORT} ===`);
+    app.log.info(`Server listening on http://${HOST}:${PORT}`);
   } catch (err) {
     console.error('=== SERVER STARTUP FAILED ===');
     console.error('Error:', err);
