@@ -19,8 +19,7 @@ export async function registerInboxRoutes(app: FastifyInstance) {
   // Start email listeners on server startup
   await emailListenerManager.startAllListeners();
 
-  // Apply authentication to all routes
-  app.addHook('preHandler', authenticate);
+  // Note: Authentication is applied per route using preHandler option
 
   /**
    * POST /ingest/inbox/sync - Manual inbox sync for testing
