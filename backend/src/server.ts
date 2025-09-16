@@ -78,7 +78,7 @@ async function buildServer() {
   
   try {
     await app.register(cors, { 
-      origin: env.NODE_ENV === 'development' ? allowedOrigins : [env.FRONTEND_URL],
+      origin: env.NODE_ENV === 'development' ? allowedOrigins : ['https://stealth1.netlify.app', env.FRONTEND_URL].filter(Boolean),
       credentials: true,
     });
     app.log.info('CORS plugin registered successfully');
