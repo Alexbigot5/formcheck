@@ -481,12 +481,12 @@ const UniboxPage: React.FC = () => {
             )}
 
             {/* Bulk Reply Button - only show for email conversations */}
-            {filteredConversations.some(c => c.channel === 'EMAIL') && (
+            {conversations.some(c => c.channel === 'EMAIL') && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => {
-                  const emailConversations = filteredConversations.filter(c => c.channel === 'EMAIL');
+                  const emailConversations = conversations.filter(c => c.channel === 'EMAIL');
                   setBulkReplyDialog({
                     open: true,
                     messages: emailConversations.map(conv => ({
@@ -501,10 +501,10 @@ const UniboxPage: React.FC = () => {
                     }))
                   });
                 }}
-                disabled={filteredConversations.filter(c => c.channel === 'EMAIL').length === 0}
+                disabled={conversations.filter(c => c.channel === 'EMAIL').length === 0}
               >
                 <Mail className="w-4 h-4 mr-2" />
-                Bulk Reply ({filteredConversations.filter(c => c.channel === 'EMAIL').length})
+                Bulk Reply ({conversations.filter(c => c.channel === 'EMAIL').length})
               </Button>
             )}
             
@@ -607,6 +607,7 @@ const UniboxPage: React.FC = () => {
                               onClaim={() => handleClaim(conversation.id)}
                               onSnooze={(minutes) => handleSnooze(conversation.id, minutes)}
                               onClose={() => handleClose(conversation.id)}
+                              onReply={(message) => setReplyDialog({ open: true, message })}
                             />
                           ))}
                         </div>
@@ -622,6 +623,7 @@ const UniboxPage: React.FC = () => {
                           onClaim={() => handleClaim(conversation.id)}
                           onSnooze={(minutes) => handleSnooze(conversation.id, minutes)}
                           onClose={() => handleClose(conversation.id)}
+                          onReply={(message) => setReplyDialog({ open: true, message })}
                         />
                       ))
                     )}
@@ -644,6 +646,27 @@ const UniboxPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Reply Dialogs */}
+        <MessageReplyDialog
+          message={replyDialog.message}
+          open={replyDialog.open}
+          onClose={() => setReplyDialog({ open: false, message: null })}
+          onReplySuccess={() => {
+            // Refresh conversations after reply
+            loadData();
+          }}
+        />
+        
+        <BulkReplyDialog
+          messages={bulkReplyDialog.messages}
+          open={bulkReplyDialog.open}
+          onClose={() => setBulkReplyDialog({ open: false, messages: [] })}
+          onSuccess={() => {
+            // Refresh conversations after bulk reply
+            loadData();
+          }}
+        />
       </div>
     </Layout>
   );
@@ -657,6 +680,7 @@ interface ConversationRowProps {
   onClaim: () => void;
   onSnooze: (minutes: number) => void;
   onClose: () => void;
+  onReply?: (message: any) => void;
 }
 
 // Helper functions (defined before the component)
@@ -696,6 +720,7 @@ const ConversationRow: React.FC<ConversationRowProps> = ({
   onClaim,
   onSnooze,
   onClose,
+  onReply,
 }) => {
   const ChannelIcon = getChannelIcon(conversation.channel);
   const currentSLAStatus = conversation.slaDueAt 
@@ -821,22 +846,19 @@ const ConversationRow: React.FC<ConversationRowProps> = ({
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Open
               </DropdownMenuItem>
-              {conversation.channel === 'EMAIL' && (
+              {conversation.channel === 'EMAIL' && onReply && (
                 <DropdownMenuItem onClick={() => {
-                  setReplyDialog({
-                    open: true,
-                    message: {
-                      id: conversation.id,
-                      subject: conversation.subject,
-                      body: conversation.preview,
-                      direction: 'IN',
-                      createdAt: conversation.createdAt,
-                      lead: {
-                        id: conversation.leadId,
-                        email: conversation.leadEmail,
-                        name: conversation.leadName,
-                        company: conversation.leadCompany
-                      }
+                  onReply({
+                    id: conversation.id,
+                    subject: conversation.subject,
+                    body: conversation.preview,
+                    direction: 'IN',
+                    createdAt: conversation.createdAt,
+                    lead: {
+                      id: conversation.leadId,
+                      email: conversation.leadEmail,
+                      name: conversation.leadName,
+                      company: conversation.leadCompany
                     }
                   });
                 }}>
@@ -861,27 +883,6 @@ const ConversationRow: React.FC<ConversationRowProps> = ({
           </DropdownMenu>
         </div>
       </div>
-      
-      {/* Reply Dialogs */}
-      <MessageReplyDialog
-        message={replyDialog.message}
-        open={replyDialog.open}
-        onClose={() => setReplyDialog({ open: false, message: null })}
-        onReplySuccess={() => {
-          // Refresh conversations after reply
-          loadConversations();
-        }}
-      />
-      
-      <BulkReplyDialog
-        messages={bulkReplyDialog.messages}
-        open={bulkReplyDialog.open}
-        onClose={() => setBulkReplyDialog({ open: false, messages: [] })}
-        onSuccess={() => {
-          // Refresh conversations after bulk reply
-          loadConversations();
-        }}
-      />
     </div>
   );
 };
