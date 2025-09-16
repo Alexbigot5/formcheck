@@ -339,6 +339,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground mt-1">All captured leads</p>
               </CardContent>
             </Card>
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
             <Card>
@@ -411,6 +412,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* Charts Section */}
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
