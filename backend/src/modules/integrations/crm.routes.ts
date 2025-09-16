@@ -430,13 +430,38 @@ async function encryptCredentials(credentials: Record<string, string>): Promise<
 async function performCrmSync(
   app: FastifyInstance,
   integration: any
-): Promise<{ synced: number; errors: number }> {
-  // Implementation for syncing leads with CRM
-  // This would involve:
-  // 1. Fetching leads from SmartForms
-  // 2. Pushing them to CRM based on field mappings
-  // 3. Pulling updates from CRM
-  // 4. Handling conflicts based on sync settings
+): Promise<{ synced: number; errors: number; details: any[] }> {
+  const { pullFromCRM } = await import('./crm-sync.service');
   
-  return { synced: 0, errors: 0 };
+  try {
+    // Pull updates from CRM
+    const pullResults = await pullFromCRM(app, integration);
+    
+    const synced = pullResults.filter(r => r.action === 'created' || r.action === 'updated').length;
+    const errors = pullResults.filter(r => r.action === 'error').length;
+    
+    app.log.info('CRM sync completed', { 
+      integrationId: integration.id,
+      synced,
+      errors,
+      total: pullResults.length
+    });
+    
+    return { 
+      synced, 
+      errors,
+      details: pullResults
+    };
+    
+  } catch (error) {
+    app.log.error('CRM sync failed:', error);
+    return { 
+      synced: 0, 
+      errors: 1,
+      details: [{ 
+        action: 'error', 
+        message: error.message 
+      }]
+    };
+  }
 }

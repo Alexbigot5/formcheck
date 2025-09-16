@@ -25,6 +25,8 @@ import { registerCrmSyncRoutes } from './modules/crm/sync.routes';
 import { registerOAuthRoutes } from './modules/oauth/oauth.routes';
 import { registerEmailIntegrationRoutes } from './modules/integrations/email.routes';
 import { registerCrmIntegrationRoutes } from './modules/integrations/crm.routes';
+import { registerCrmWebhookRoutes } from './modules/integrations/crm-webhooks.routes';
+import { registerMessageReplyRoutes } from './modules/messages/reply.routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -122,6 +124,8 @@ async function buildServer() {
   await registerOAuthRoutes(app);
   await registerEmailIntegrationRoutes(app);
   await registerCrmIntegrationRoutes(app);
+  await registerCrmWebhookRoutes(app);
+  await registerMessageReplyRoutes(app);
 
   // Reply decorators have been moved before route registration
 

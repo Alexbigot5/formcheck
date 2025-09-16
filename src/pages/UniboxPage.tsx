@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ConversationPanel from '@/components/ConversationPanel';
+import { MessageReplyDialog } from '@/components/MessageReplyDialog';
+import { BulkReplyDialog } from '@/components/BulkReplyDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,6 +92,16 @@ const UniboxPage: React.FC = () => {
   // Local state
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [counts, setCounts] = useState({ unassigned: 0, mine: 0, all: 0 });
+  
+  // Reply dialog states
+  const [replyDialog, setReplyDialog] = useState<{
+    open: boolean;
+    message: any | null;
+  }>({ open: false, message: null });
+  const [bulkReplyDialog, setBulkReplyDialog] = useState<{
+    open: boolean;
+    messages: any[];
+  }>({ open: false, messages: [] });
   const [sdrCounts, setSdrCounts] = useState<Array<{ assigneeId: string; assigneeName: string; count: number }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchDebounceTimeout, setSearchDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -468,6 +480,34 @@ const UniboxPage: React.FC = () => {
               </Button>
             )}
 
+            {/* Bulk Reply Button - only show for email conversations */}
+            {filteredConversations.some(c => c.channel === 'EMAIL') && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  const emailConversations = filteredConversations.filter(c => c.channel === 'EMAIL');
+                  setBulkReplyDialog({
+                    open: true,
+                    messages: emailConversations.map(conv => ({
+                      id: conv.id,
+                      subject: conv.subject,
+                      lead: {
+                        id: conv.leadId,
+                        email: conv.leadEmail,
+                        name: conv.leadName,
+                        company: conv.leadCompany
+                      }
+                    }))
+                  });
+                }}
+                disabled={filteredConversations.filter(c => c.channel === 'EMAIL').length === 0}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Bulk Reply ({filteredConversations.filter(c => c.channel === 'EMAIL').length})
+              </Button>
+            )}
+            
             <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
@@ -781,6 +821,29 @@ const ConversationRow: React.FC<ConversationRowProps> = ({
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Open
               </DropdownMenuItem>
+              {conversation.channel === 'EMAIL' && (
+                <DropdownMenuItem onClick={() => {
+                  setReplyDialog({
+                    open: true,
+                    message: {
+                      id: conversation.id,
+                      subject: conversation.subject,
+                      body: conversation.preview,
+                      direction: 'IN',
+                      createdAt: conversation.createdAt,
+                      lead: {
+                        id: conversation.leadId,
+                        email: conversation.leadEmail,
+                        name: conversation.leadName,
+                        company: conversation.leadCompany
+                      }
+                    }
+                  });
+                }}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Reply
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => onSnooze(15)}>
                 <Pause className="w-4 h-4 mr-2" />
                 Snooze 15m
@@ -798,6 +861,27 @@ const ConversationRow: React.FC<ConversationRowProps> = ({
           </DropdownMenu>
         </div>
       </div>
+      
+      {/* Reply Dialogs */}
+      <MessageReplyDialog
+        message={replyDialog.message}
+        open={replyDialog.open}
+        onClose={() => setReplyDialog({ open: false, message: null })}
+        onReplySuccess={() => {
+          // Refresh conversations after reply
+          loadConversations();
+        }}
+      />
+      
+      <BulkReplyDialog
+        messages={bulkReplyDialog.messages}
+        open={bulkReplyDialog.open}
+        onClose={() => setBulkReplyDialog({ open: false, messages: [] })}
+        onSuccess={() => {
+          // Refresh conversations after bulk reply
+          loadConversations();
+        }}
+      />
     </div>
   );
 };
