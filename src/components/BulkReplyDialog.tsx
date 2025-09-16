@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Mail, Users, Template } from 'lucide-react';
+import { Send, Mail, Users, FileText } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -185,7 +185,7 @@ export const BulkReplyDialog: React.FC<BulkReplyDialogProps> = ({
                     onCheckedChange={(checked) => setUseTemplate(checked as boolean)}
                   />
                   <Label htmlFor="useTemplate" className="flex items-center gap-2">
-                    <Template className="w-4 h-4" />
+                    <FileText className="w-4 h-4" />
                     Use Email Template
                   </Label>
                 </div>
