@@ -47,12 +47,15 @@ const Login = () => {
       document.head.appendChild(linkCanonical);
     }
     linkCanonical.setAttribute("href", `${window.location.origin}/login`);
+  }, []);
 
-    // Redirect if already authenticated
-    if (isAuthenticated) {
-      navigate("/dashboard");
+  // Separate effect for authentication redirect to prevent loops
+  useEffect(() => {
+    // Only redirect if authenticated AND not currently loading
+    if (isAuthenticated && !isLoading) {
+      navigate("/dashboard", { replace: true });
     }
-  }, [navigate, isAuthenticated]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),

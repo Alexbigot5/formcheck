@@ -98,73 +98,78 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Initialize auth state on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      if (USE_MOCK_AUTH) {
-        const storedUserData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
-        const storedTeamId = localStorage.getItem(STORAGE_KEYS.TEAM_ID);
-        const storedUserRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
-        if (storedUserData && storedTeamId && storedUserRole) {
-          try {
-            const userData = JSON.parse(storedUserData) as User;
-            setUser(userData);
-            setTeamId(storedTeamId);
-            setUserRole(storedUserRole as UserRole);
-          } catch {}
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Initialize Supabase auth
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setSupabaseUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Convert Supabase user to our User type
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          role: 'admin' as UserRole, // Default role for Supabase-only mode
-        };
-        setUser(userData);
-        setUserRole('admin');
-        setTeamId(session.user.id); // Use user ID as team ID for simplicity
-        setIsLoading(false);
-      }
-      const token = getAuthToken();
-      
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Try to get user data from localStorage first
-      const storedUserData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
-      const storedTeamId = localStorage.getItem(STORAGE_KEYS.TEAM_ID);
-      const storedUserRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
-
-      if (storedUserData && storedTeamId && storedUserRole) {
-        try {
-          const userData = JSON.parse(storedUserData) as User;
-          setUser(userData);
-          setTeamId(storedTeamId);
-          setUserRole(storedUserRole as UserRole);
-        } catch (error) {
-          console.error('Failed to parse stored user data:', error);
-        }
-      }
-
-      // Verify Supabase token with backend
       try {
+        if (USE_MOCK_AUTH) {
+          // Handle mock authentication
+          const storedUserData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+          const storedTeamId = localStorage.getItem(STORAGE_KEYS.TEAM_ID);
+          const storedUserRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
+          
+          if (storedUserData && storedTeamId && storedUserRole) {
+            try {
+              const userData = JSON.parse(storedUserData) as User;
+              setUser(userData);
+              setTeamId(storedTeamId);
+              setUserRole(storedUserRole as UserRole);
+            } catch (error) {
+              console.error('Failed to parse stored user data:', error);
+              // Clear corrupted data
+              localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+              localStorage.removeItem(STORAGE_KEYS.TEAM_ID);
+              localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+            }
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        // Handle Supabase authentication
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
+        setSession(session);
+        setSupabaseUser(session?.user ?? null);
+        
+        if (session?.user && session.access_token) {
           // Set the token for API calls
           setAuthToken(session.access_token);
-          await checkAuthMutation.mutateAsync({});
+          
+          // Convert Supabase user to our User type
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+            role: 'admin' as UserRole,
+          };
+          
+          // Store user data locally
+          localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+          localStorage.setItem(STORAGE_KEYS.USER_ROLE, 'admin');
+          localStorage.setItem(STORAGE_KEYS.TEAM_ID, session.user.id);
+          
+          setUser(userData);
+          setUserRole('admin');
+          setTeamId(session.user.id);
+        } else {
+          // No session, clear any stale data
+          removeAuthToken();
+          localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+          localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+          localStorage.removeItem(STORAGE_KEYS.TEAM_ID);
+          setUser(null);
+          setUserRole(null);
+          setTeamId(null);
         }
       } catch (error) {
-        // Error handling is done in the mutation's onError callback
+        console.error('Auth initialization failed:', error);
+        // Clear auth state on error
+        removeAuthToken();
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+        localStorage.removeItem(STORAGE_KEYS.TEAM_ID);
+        setUser(null);
+        setUserRole(null);
+        setTeamId(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -174,14 +179,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!USE_MOCK_AUTH) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log('Auth state change:', event, session?.user?.id);
+          
+          // Avoid duplicate processing during initialization
+          if (event === 'INITIAL_SESSION') {
+            return; // Already handled in initializeAuth
+          }
+          
           setSession(session);
           setSupabaseUser(session?.user ?? null);
           
           if (session?.user && session.access_token) {
-            // Set the token for API calls (for when backend is available)
+            // Set the token for API calls
             setAuthToken(session.access_token);
             
-            // Convert Supabase user to our User type (frontend-only mode)
+            // Convert Supabase user to our User type
             const userData: User = {
               id: session.user.id,
               email: session.user.email || '',
@@ -198,17 +210,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setUserRole('admin');
             setTeamId(session.user.id);
           } else {
-            // Clear auth state
-            removeAuthToken();
-            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-            localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
-            localStorage.removeItem(STORAGE_KEYS.TEAM_ID);
-            setUser(null);
-            setUserRole(null);
-            setTeamId(null);
+            // Clear auth state only on sign out
+            if (event === 'SIGNED_OUT') {
+              removeAuthToken();
+              localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+              localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+              localStorage.removeItem(STORAGE_KEYS.TEAM_ID);
+              setUser(null);
+              setUserRole(null);
+              setTeamId(null);
+            }
           }
-          
-          setIsLoading(false);
         }
       );
 
