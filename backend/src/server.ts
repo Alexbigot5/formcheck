@@ -70,6 +70,7 @@ async function buildServer() {
   // Configure CORS for frontend origin
   const allowedOrigins = [
     env.FRONTEND_URL,
+    'https://stealth1.netlify.app', // Production frontend
     'http://localhost:3000', // Next.js default
     'http://localhost:8080', // Vite default
     'http://localhost:5173', // Vite alternative port
