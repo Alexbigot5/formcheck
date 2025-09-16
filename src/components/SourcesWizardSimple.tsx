@@ -433,12 +433,11 @@ const SourcesWizardSimple = () => {
           onComplete={handleWizardComplete} 
         />
       )}
-      {activeWizard === 'shared-inbox' && (
-        <EmailWizard 
-          onClose={handleWizardClose} 
-          onComplete={handleWizardComplete} 
-        />
-      )}
+      <EmailWizard 
+        open={activeWizard === 'shared-inbox'}
+        onClose={handleWizardClose} 
+        onComplete={handleWizardComplete} 
+      />
     </div>
   );
 };

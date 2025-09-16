@@ -96,12 +96,52 @@ const EmailTemplates: React.FC = () => {
   const [newTemplateName, setNewTemplateName] = useState<string>("");
   const [sendEmailOpen, setSendEmailOpen] = useState(false);
 
-  // Performance stats - will be loaded from API when available
+  // Performance stats - loaded from API
   const [performanceStats, setPerformanceStats] = useState<Record<Segment, PerformanceStats>>({
     hot: { openRate: 0, replyRate: 0, clickRate: 0, sent: 0 },
     warm: { openRate: 0, replyRate: 0, clickRate: 0, sent: 0 },
     cold: { openRate: 0, replyRate: 0, clickRate: 0, sent: 0 }
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTemplateData();
+  }, []);
+
+  const loadTemplateData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load saved templates
+      const templatesResponse = await fetch('/api/email-templates', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      
+      if (templatesResponse.ok) {
+        const templatesData = await templatesResponse.json();
+        setSavedTemplates(templatesData.templates || []);
+      }
+
+      // Load performance stats
+      const statsResponse = await fetch('/api/email-templates/stats', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setPerformanceStats(statsData.stats || performanceStats);
+      }
+      
+    } catch (error) {
+      console.error('Failed to load template data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderTemplate = (segment: Segment) => {
     const t = templates[segment];

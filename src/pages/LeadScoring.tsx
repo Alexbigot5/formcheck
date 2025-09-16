@@ -358,25 +358,7 @@ const LeadScoring: React.FC = () => {
     try {
       setLoading(true);
       
-      const USE_MOCK_AUTH = import.meta.env.VITE_MOCK_AUTH === 'true';
-      
-      if (USE_MOCK_AUTH) {
-        // Mock test result
-        const mockResult: ScoringResult = {
-          score: Math.floor(Math.random() * 100),
-          band: Math.random() > 0.6 ? 'HIGH' : Math.random() > 0.3 ? 'MEDIUM' : 'LOW',
-          tags: ['demo', 'mock-data'],
-          trace: [
-            { step: 'Base Score', operation: 'calculate', points: 45, reason: 'Initial calculation', total: 45 },
-            { step: 'Urgency Bonus', operation: 'add', points: 15, reason: 'High urgency detected', total: 60 },
-            { step: 'Engagement Bonus', operation: 'add', points: 10, reason: 'Active engagement', total: 70 }
-          ]
-        };
-        setTestResult(mockResult);
-        toast.success('Live test completed (mock mode)');
-        setLoading(false);
-        return;
-      }
+      // Production mode - always use real API
       
       const result = await scoringApi.testScoring(testLead);
       setTestResult(result);

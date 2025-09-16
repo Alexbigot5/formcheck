@@ -68,53 +68,14 @@ const ViewForms: React.FC = () => {
     }
     linkCanonical.setAttribute("href", `${window.location.origin}/forms`);
 
-    const USE_MOCK_AUTH = import.meta.env.VITE_MOCK_AUTH === 'true';
-    
-    if (USE_MOCK_AUTH) {
-      // Skip Supabase auth check in mock mode, just load forms
-      setLoading(false);
-      // Set some mock forms for demonstration
-      setForms([
-        {
-          id: 'mock-form-1',
-          name: 'Product Demo Request Form',
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          user_id: 'mock-user',
-          schema: {},
-          submissions_count: 23,
-          last_submission: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'active' as const
-        },
-        {
-          id: 'mock-form-2',
-          name: 'Newsletter Signup',
-          created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          user_id: 'mock-user',
-          schema: {},
-          submissions_count: 156,
-          last_submission: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'active' as const
-        },
-        {
-          id: 'mock-form-3',
-          name: 'Contact Us Draft',
-          created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          user_id: 'mock-user',
-          schema: {},
-          submissions_count: 0,
-          last_submission: null,
-          status: 'draft' as const
-        }
-      ]);
-    } else {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!session?.user) navigate("/login");
-      });
+    // Production mode - always use Supabase auth and real data
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) navigate("/login");
+    });
 
-      loadForms();
+    loadForms();
 
-      return () => subscription.unsubscribe();
-    }
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const loadForms = async () => {

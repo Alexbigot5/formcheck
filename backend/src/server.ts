@@ -23,6 +23,8 @@ import { registerEnrichmentRoutes } from './modules/enrich/index';
 import { registerAnalyticsRoutes } from './modules/analytics/analytics.routes';
 import { registerCrmSyncRoutes } from './modules/crm/sync.routes';
 import { registerOAuthRoutes } from './modules/oauth/oauth.routes';
+import { registerEmailIntegrationRoutes } from './modules/integrations/email.routes';
+import { registerCrmIntegrationRoutes } from './modules/integrations/crm.routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -118,6 +120,8 @@ async function buildServer() {
   await registerAnalyticsRoutes(app);
   await registerCrmSyncRoutes(app);
   await registerOAuthRoutes(app);
+  await registerEmailIntegrationRoutes(app);
+  await registerCrmIntegrationRoutes(app);
 
   // Reply decorators have been moved before route registration
 

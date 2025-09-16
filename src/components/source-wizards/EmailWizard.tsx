@@ -6,16 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BaseSourceWizard, WizardStep, CopyableField, ExternalLink } from "./BaseSourceWizard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Mail, Gmail, Server, Shield, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface EmailWizardProps {
+  open: boolean;
   onClose: () => void;
   onComplete: (sourceId: string) => void;
 }
 
 export const EmailWizard: React.FC<EmailWizardProps> = ({
+  open,
   onClose,
   onComplete
 }) => {
@@ -32,20 +34,59 @@ export const EmailWizard: React.FC<EmailWizardProps> = ({
   const handleTest = async () => {
     setTestStatus('testing');
     try {
-      // Simulate API call to test email connection
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setTestStatus('success');
-      toast.success('Email connection successful!');
+      // Make actual API call to test email connection
+      const response = await fetch('/api/integrations/email/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        },
+        body: JSON.stringify({
+          provider: selectedProvider,
+          credentials
+        })
+      });
+
+      if (response.ok) {
+        setTestStatus('success');
+        toast.success('Email connection successful!');
+      } else {
+        setTestStatus('error');
+        toast.error('Email connection failed');
+      }
     } catch (error) {
       setTestStatus('error');
       toast.error('Email connection failed');
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (testStatus === 'success') {
-      onComplete('shared-inbox');
-      toast.success('Email integration configured successfully!');
+      try {
+        // Save the email integration
+        const response = await fetch('/api/integrations/email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+          },
+          body: JSON.stringify({
+            provider: selectedProvider,
+            credentials,
+            enabled: true
+          })
+        });
+
+        if (response.ok) {
+          onComplete('shared-inbox');
+          toast.success('Email integration configured successfully!');
+          onClose();
+        } else {
+          toast.error('Failed to save email integration');
+        }
+      } catch (error) {
+        toast.error('Failed to save email integration');
+      }
     } else {
       toast.error('Please test the connection first');
     }
@@ -70,12 +111,16 @@ export const EmailWizard: React.FC<EmailWizardProps> = ({
   ];
 
   return (
-    <BaseSourceWizard
-      sourceId="shared-inbox"
-      onClose={onClose}
-      onComplete={onComplete}
-    >
-      <div className="space-y-6">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <Mail className="w-6 h-6 text-blue-500" />
+            Connect Email Integration
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
         <div className="text-center">
           <Mail className="w-12 h-12 text-blue-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold">Connect Your Email</h3>
@@ -305,7 +350,20 @@ export const EmailWizard: React.FC<EmailWizardProps> = ({
             </AlertDescription>
           </Alert>
         )}
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleComplete}
+            disabled={testStatus !== 'success'}
+          >
+            Complete Setup
+          </Button>
+        </div>
       </div>
-    </BaseSourceWizard>
+      </DialogContent>
+    </Dialog>
   );
 };

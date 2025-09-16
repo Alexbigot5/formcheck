@@ -66,71 +66,58 @@ const OutboundCampaigns = () => {
   const [showNewSequenceDialog, setShowNewSequenceDialog] = useState(false);
   const [showNewPoolDialog, setShowNewPoolDialog] = useState(false);
 
-  // Mock data - replace with real API calls
-  const [mailboxPools] = useState<MailboxPool[]>([
-    {
-      id: "1",
-      name: "Sales Team Pool",
-      mailboxes: ["john@company.com", "sarah@company.com", "mike@company.com"],
-      status: "active",
-      created_at: "2024-01-15"
-    },
-    {
-      id: "2", 
-      name: "Marketing Pool",
-      mailboxes: ["marketing@company.com", "outreach@company.com"],
-      status: "active",
-      created_at: "2024-01-20"
-    }
-  ]);
+  // Production data - load from API
+  const [mailboxPools, setMailboxPools] = useState<MailboxPool[]>([]);
+  const [emailSequences, setEmailSequences] = useState<EmailSequence[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [emailSequences] = useState<EmailSequence[]>([
-    {
-      id: "1",
-      name: "Cold Outreach Sequence",
-      steps: 5,
-      status: "active",
-      open_rate: 42.3,
-      reply_rate: 8.7,
-      created_at: "2024-01-10"
-    },
-    {
-      id: "2",
-      name: "Follow-up Sequence", 
-      steps: 3,
-      status: "draft",
-      open_rate: 0,
-      reply_rate: 0,
-      created_at: "2024-01-22"
-    }
-  ]);
+  useEffect(() => {
+    loadCampaignData();
+  }, []);
 
-  const [campaigns] = useState<Campaign[]>([
-    {
-      id: "1",
-      name: "Q1 Enterprise Outreach",
-      sequence_id: "1",
-      mailbox_pool_id: "1", 
-      status: "active",
-      total_leads: 500,
-      sent: 342,
-      opened: 145,
-      replied: 23,
-      created_at: "2024-01-12"
-    },
-    {
-      id: "2",
-      name: "SaaS Startup Campaign",
-      sequence_id: "1",
-      mailbox_pool_id: "2",
-      status: "paused", 
-      total_leads: 250,
-      sent: 89,
-      opened: 34,
-      replied: 7,
-      created_at: "2024-01-18"
+  const loadCampaignData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load mailbox pools
+      const poolsResponse = await fetch('/api/campaigns/mailbox-pools', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      if (poolsResponse.ok) {
+        const poolsData = await poolsResponse.json();
+        setMailboxPools(poolsData.pools || []);
+      }
+
+      // Load email sequences
+      const sequencesResponse = await fetch('/api/campaigns/sequences', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      if (sequencesResponse.ok) {
+        const sequencesData = await sequencesResponse.json();
+        setEmailSequences(sequencesData.sequences || []);
+      }
+
+      // Load campaigns
+      const campaignsResponse = await fetch('/api/campaigns', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      if (campaignsResponse.ok) {
+        const campaignsData = await campaignsResponse.json();
+        setCampaigns(campaignsData.campaigns || []);
+      }
+    } catch (error) {
+      console.error('Failed to load campaign data:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {

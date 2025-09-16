@@ -125,6 +125,8 @@ const CrmIntegrations: React.FC = () => {
   const progress = useMemo(() => (step / 4) * 100, [step]);
   const [credentials, setCredentials] = useState<Record<string, string>>({});
   const [hasSavedCreds, setHasSavedCreds] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   
   // Enhanced features state
   const [fieldMappingConfigs, setFieldMappingConfigs] = useState<FieldMappingConfig[]>([]);
@@ -236,16 +238,52 @@ const CrmIntegrations: React.FC = () => {
     toast.success("Provider saved");
   };
 
+  const testConnection = async () => {
+    if (!provider) return toast.error("Select a CRM provider");
+    if (Object.keys(credentials).length === 0) return toast.error("Enter credentials first");
+    
+    setTesting(true);
+    setTestResult(null);
+    
+    try {
+      const response = await fetch('/api/integrations/crm/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        },
+        body: JSON.stringify({
+          provider,
+          credentials
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setTestResult({ success: true, message: 'Connection successful!' });
+        toast.success('CRM connection test successful!');
+      } else {
+        setTestResult({ success: false, message: result.error || 'Connection failed' });
+        toast.error('CRM connection test failed');
+      }
+    } catch (error) {
+      setTestResult({ success: false, message: 'Failed to test connection' });
+      toast.error('Failed to test connection');
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const saveCredentials = async () => {
     if (!provider) return toast.error("Select a CRM provider");
     if (Object.keys(credentials).length === 0) return toast.error("Enter at least one credential field");
     
-    const USE_MOCK_AUTH = import.meta.env.VITE_MOCK_AUTH === 'true';
+    // Test connection first
+    await testConnection();
     
-    if (USE_MOCK_AUTH) {
-      setHasSavedCreds(true);
-      toast.success("Credentials saved securely (mock mode)");
-      return;
+    if (testResult?.success !== true) {
+      return toast.error("Please test the connection successfully before saving");
     }
     
     const { data: userRes } = await supabase.auth.getUser();

@@ -234,9 +234,9 @@ const LeadsWorkspace: React.FC<WorkspaceProps> = ({
 }) => {
   const navigate = useNavigate();
   
-  // Data
-  const [sdrs] = useState<SDR[]>(generateMockSDRs());
-  const [allLeads] = useState<Lead[]>(generateMockLeads(generateMockSDRs()));
+  // Data - Load from API in production
+  const [sdrs, setSdrs] = useState<SDR[]>([]);
+  const [allLeads, setAllLeads] = useState<Lead[]>([]);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('team-inbox');
   const [isOOO, setIsOOO] = useState(false);
@@ -267,6 +267,44 @@ const LeadsWorkspace: React.FC<WorkspaceProps> = ({
   });
   const [selectedView, setSelectedView] = useState<string>('');
   
+  // Load real data on component mount
+  useEffect(() => {
+    loadLeadsData();
+  }, []);
+
+  const loadLeadsData = async () => {
+    try {
+      // In production, load from API
+      const response = await fetch('/api/leads', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAllLeads(data.leads || []);
+      }
+      
+      // Load SDR data
+      const sdrResponse = await fetch('/api/users', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('supabase_access_token')}`
+        }
+      });
+      
+      if (sdrResponse.ok) {
+        const sdrData = await sdrResponse.json();
+        setSdrs(sdrData.users || []);
+      }
+    } catch (error) {
+      console.error('Failed to load leads data:', error);
+      // Fallback to empty arrays for now
+      setAllLeads([]);
+      setSdrs([]);
+    }
+  };
+
   // Persist saved views to localStorage
   useEffect(() => {
     localStorage.setItem('leads-saved-views', JSON.stringify(savedViews));

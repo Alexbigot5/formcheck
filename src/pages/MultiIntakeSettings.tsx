@@ -441,12 +441,11 @@ const MultiIntakeSettings = () => {
           onComplete={handleWizardComplete} 
         />
       )}
-      {activeWizard === 'shared-inbox' && (
-        <EmailWizard 
-          onClose={handleWizardClose} 
-          onComplete={handleWizardComplete} 
-        />
-      )}
+      <EmailWizard 
+        open={activeWizard === 'shared-inbox'}
+        onClose={handleWizardClose} 
+        onComplete={handleWizardComplete} 
+      />
       {activeWizard === 'website-form' && (
         <WebsiteFormWizard 
           onClose={handleWizardClose} 
