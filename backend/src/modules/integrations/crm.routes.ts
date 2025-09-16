@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { authenticateSupabase } from '../../middleware/supabase-auth';
 import { AuthenticatedRequest } from '../../types/auth';
+import { crmApiService } from '../../services/crm-api.service';
 
 // Validation schemas
 const crmProviderSchema = z.object({
@@ -211,6 +212,118 @@ export async function registerCrmIntegrationRoutes(app: FastifyInstance) {
       return reply.code(500).send({ 
         success: false, 
         error: 'Failed to sync with CRM' 
+      });
+    }
+  });
+
+  /**
+   * GET /api/integrations/crm/fields/:provider - Get CRM fields for provider
+   */
+  app.get('/api/integrations/crm/fields/:provider', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
+    const { provider } = request.params as { provider: string };
+    const teamId = request.teamId;
+
+    try {
+      const fields = await crmApiService.getCRMFields(
+        app,
+        teamId,
+        provider,
+        process.env.SECRET_VAULT_KEY!
+      );
+
+      return reply.send({
+        success: true,
+        data: { fields, provider }
+      });
+    } catch (error: any) {
+      app.log.error('Failed to fetch CRM fields:', error);
+      return reply.code(500).send({
+        success: false,
+        error: error.message || 'Failed to fetch CRM fields'
+      });
+    }
+  });
+
+  /**
+   * GET /api/integrations/crm/contacts/:provider - Get contacts from CRM
+   */
+  app.get('/api/integrations/crm/contacts/:provider', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
+    const { provider } = request.params as { provider: string };
+    const { limit = 100 } = request.query as { limit?: number };
+    const teamId = request.teamId;
+
+    try {
+      const result = await crmApiService.getContactsFromCRM(
+        app,
+        teamId,
+        provider,
+        process.env.SECRET_VAULT_KEY!,
+        Number(limit)
+      );
+
+      return reply.send({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      app.log.error('Failed to fetch CRM contacts:', error);
+      return reply.code(500).send({
+        success: false,
+        error: error.message || 'Failed to fetch CRM contacts'
+      });
+    }
+  });
+
+  /**
+   * POST /api/integrations/crm/sync-contact - Sync a contact to CRM
+   */
+  app.post('/api/integrations/crm/sync-contact', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
+    const { provider, contactData } = request.body as {
+      provider: string;
+      contactData: any;
+    };
+    const teamId = request.teamId;
+
+    try {
+      const result = await crmApiService.syncContactToCRM(
+        app,
+        teamId,
+        provider,
+        contactData,
+        process.env.SECRET_VAULT_KEY!
+      );
+
+      // Broadcast the sync result via WebSocket
+      if (app.broadcastToSubscribers) {
+        app.broadcastToSubscribers('crm_sync', {
+          type: 'crm_sync',
+          data: {
+            provider,
+            action: result.action,
+            contactId: result.contactId,
+            success: result.success,
+            message: result.message,
+            teamId
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return reply.send({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      app.log.error('Failed to sync contact to CRM:', error);
+      return reply.code(500).send({
+        success: false,
+        error: error.message || 'Failed to sync contact to CRM'
       });
     }
   });

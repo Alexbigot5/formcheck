@@ -4,6 +4,7 @@ import fastifyJwt from '@fastify/jwt';
 import pino from 'pino';
 import { loadEnv } from './config/env';
 import prismaPlugin from './plugins/prisma';
+import websocketPlugin from './plugins/websocket';
 import { registerHealthRoutes } from './modules/health/health.routes';
 import { registerAuthRoutes } from './modules/auth/auth.routes';
 import { registerSupabaseAuthRoutes } from './modules/auth/supabase-auth.routes';
@@ -27,6 +28,7 @@ import { registerEmailIntegrationRoutes } from './modules/integrations/email.rou
 import { registerCrmIntegrationRoutes } from './modules/integrations/crm.routes';
 import { registerCrmWebhookRoutes } from './modules/integrations/crm-webhooks.routes';
 import { registerMessageReplyRoutes } from './modules/messages/reply.routes';
+import { registerWebSocketRoutes } from './modules/websocket/websocket.routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -85,6 +87,9 @@ async function buildServer() {
     
     await app.register(prismaPlugin);
     app.log.info('Prisma plugin registered successfully');
+    
+    await app.register(websocketPlugin);
+    app.log.info('WebSocket plugin registered successfully');
   } catch (error) {
     app.log.error('Failed to register core plugins:', error);
     throw error;
@@ -126,6 +131,7 @@ async function buildServer() {
   await registerCrmIntegrationRoutes(app);
   await registerCrmWebhookRoutes(app);
   await registerMessageReplyRoutes(app);
+  await registerWebSocketRoutes(app);
 
   // Reply decorators have been moved before route registration
 
