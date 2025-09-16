@@ -20,10 +20,13 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { getSourceConfig, SOURCE_CATEGORIES, SOURCE_CONFIG } from '@/lib/sourceMapping';
 import { analyticsApi, type AnalyticsOverview } from '@/lib/analyticsApi';
+import { useWebSocket } from '@/lib/websocketService';
 import { toast } from 'sonner';
 
 const SourceAnalytics = () => {
@@ -32,11 +35,44 @@ const SourceAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [wsConnected, setWsConnected] = useState(false);
+
+  // WebSocket integration for real-time updates
+  const { connect, disconnect, isConnected, subscribeToAnalytics } = useWebSocket({
+    onConnect: () => {
+      setWsConnected(true);
+      subscribeToAnalytics();
+    },
+    onDisconnect: () => {
+      setWsConnected(false);
+    },
+    onAnalyticsUpdate: (data) => {
+      console.log('Real-time analytics update received:', data);
+      // Refresh analytics data when real-time update is received
+      loadAnalyticsData();
+    },
+    onFormSubmission: (data) => {
+      console.log('New form submission received:', data);
+      // Refresh analytics data for new submissions
+      loadAnalyticsData();
+    }
+  });
 
   // Load analytics data
   useEffect(() => {
     loadAnalyticsData();
   }, [dateRange]);
+
+  // WebSocket connection lifecycle
+  useEffect(() => {
+    // Connect to WebSocket when component mounts
+    connect();
+    
+    // Cleanup on unmount
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect]);
 
   const loadAnalyticsData = async () => {
     try {
@@ -201,6 +237,25 @@ const SourceAnalytics = () => {
             <Button variant="outline" size="sm" onClick={loadAnalyticsData} disabled={loading}>
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
+            
+            {/* Real-time connection indicator */}
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
+              wsConnected 
+                ? 'bg-green-50 text-green-700 border border-green-200' 
+                : 'bg-gray-50 text-gray-600 border border-gray-200'
+            }`}>
+              {wsConnected ? (
+                <>
+                  <Wifi className="w-4 h-4" />
+                  <span>Live</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-4 h-4" />
+                  <span>Offline</span>
+                </>
+              )}
+            </div>
           </div>
         </header>
 

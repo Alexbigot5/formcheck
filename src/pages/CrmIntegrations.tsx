@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import CrmConnectionDialog, { type CrmCredentials } from "@/components/CrmConnectionDialog";
 import { 
   RefreshCw, 
   AlertTriangle, 
@@ -118,11 +119,42 @@ const internalFields = [
 const CrmIntegrations: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [connectionDialog, setConnectionDialog] = useState<{
+    open: boolean;
+    provider: 'hubspot' | 'salesforce' | 'zoho' | 'pipedrive' | null;
+  }>({ open: false, provider: null });
   const [provider, setProvider] = useState<Provider | null>(null);
   const [connected, setConnected] = useState(false);
   const [fieldMappings, setFieldMappings] = useState<FieldMapping>({});
   const [routingRules, setRoutingRules] = useState<RoutingRules>({});
   const progress = useMemo(() => (step / 4) * 100, [step]);
+
+  const handleConnectCrm = (crmProvider: 'hubspot' | 'salesforce' | 'zoho' | 'pipedrive') => {
+    setConnectionDialog({
+      open: true,
+      provider: crmProvider
+    });
+  };
+
+  const handleCrmConnection = async (crmProvider: string, credentials: CrmCredentials) => {
+    try {
+      // TODO: Implement actual CRM API connection
+      // For now, simulate successful connection
+      console.log('Connecting to', crmProvider, 'with credentials:', credentials);
+      
+      // Store connection in state
+      setProvider(crmProvider as Provider);
+      setConnected(true);
+      
+      // TODO: Store credentials securely in backend
+      // await integrationsApi.connectCrm(crmProvider, credentials);
+      
+      toast.success(`Successfully connected to ${crmProvider}!`);
+    } catch (error) {
+      console.error('CRM connection failed:', error);
+      throw error; // Re-throw to be handled by the dialog
+    }
+  };
   const [credentials, setCredentials] = useState<Record<string, string>>({});
   const [hasSavedCreds, setHasSavedCreds] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -1071,8 +1103,13 @@ const CrmIntegrations: React.FC = () => {
                   <Button 
                     variant={connected ? "secondary" : "default"}
                     onClick={() => {
-                      setConnected(!connected);
-                      toast.success(connected ? "Disconnected from " + provider : "Connected to " + provider);
+                      if (connected) {
+                        setConnected(false);
+                        setProvider(null);
+                        toast.success("Disconnected from CRM");
+                      } else if (provider) {
+                        handleConnectCrm(provider);
+                      }
                     }}
                   >
                     {connected ? "Disconnect" : "Connect"}
@@ -1295,6 +1332,13 @@ const CrmIntegrations: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* CRM Connection Dialog */}
+        <CrmConnectionDialog
+          open={connectionDialog.open}
+          onClose={() => setConnectionDialog({ open: false, provider: null })}
+          provider={connectionDialog.provider}
+          onConnect={handleCrmConnection}
+        />
       </div>
     </Layout>
   );

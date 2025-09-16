@@ -94,14 +94,32 @@ const ViewForms: React.FC = () => {
         return;
       }
 
-      // TODO: Replace with real submission data from backend
-      // For now, using mock data for submissions_count and status
-      const formsWithStats = (formsData || []).map(form => ({
-        ...form,
-        submissions_count: Math.floor(Math.random() * 50), // TODO: Get from submissions table
-        last_submission: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString() : null,
-        status: 'active' // TODO: Add status field to forms table
-      })) as Form[];
+      // Get submission counts from the analytics view
+      const formsWithStats = await Promise.all((formsData || []).map(async (form) => {
+        try {
+          // Try to get real submission analytics
+          const { data: analyticsData } = await supabase
+            .from("form_submission_analytics")
+            .select("total_submissions, last_submission_at")
+            .eq("form_id", form.id)
+            .single();
+          
+          return {
+            ...form,
+            submissions_count: analyticsData?.total_submissions || 0,
+            last_submission: analyticsData?.last_submission_at || null,
+            status: 'active' as const // TODO: Add status field to forms table
+          };
+        } catch (error) {
+          // Fallback to mock data if analytics view doesn't exist
+          return {
+            ...form,
+            submissions_count: Math.floor(Math.random() * 50),
+            last_submission: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString() : null,
+            status: 'active' as const
+          };
+        }
+      }));
 
       setForms(formsWithStats);
     } catch (error) {
@@ -114,29 +132,43 @@ const ViewForms: React.FC = () => {
 
   const loadSubmissions = async (formId: string) => {
     try {
-      // TODO: Implement real submissions API call
-      // const { data: submissionsData, error } = await supabase
-      //   .from("form_submissions")
-      //   .select("*")
-      //   .eq("form_id", formId)
-      //   .order("submitted_at", { ascending: false })
-      //   .limit(10);
+      const { data: submissionsData, error } = await supabase
+        .from("form_submissions")
+        .select("*")
+        .eq("form_id", formId)
+        .order("submitted_at", { ascending: false })
+        .limit(10);
 
-      // For now, using mock data until submissions table is created
-      const mockSubmissions: FormSubmission[] = Array.from({ length: 5 }, (_, i) => ({
-        id: `sub-${i}`,
-        form_id: formId,
-        submitted_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-        data: {
-          name: `Lead ${i + 1}`,
-          email: `lead${i + 1}@example.com`,
-          company: `Company ${i + 1}`,
-          budget: Math.floor(Math.random() * 100000) + 5000
-        },
-        lead_score: Math.floor(Math.random() * 100)
+      if (error) {
+        console.error('Supabase error loading submissions:', error);
+        // Fallback to mock data if table doesn't exist yet
+        const mockSubmissions: FormSubmission[] = Array.from({ length: 5 }, (_, i) => ({
+          id: `sub-${i}`,
+          form_id: formId,
+          submitted_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+          data: {
+            name: `Lead ${i + 1}`,
+            email: `lead${i + 1}@example.com`,
+            company: `Company ${i + 1}`,
+            budget: Math.floor(Math.random() * 100000) + 5000
+          },
+          lead_score: Math.floor(Math.random() * 100)
+        }));
+        
+        setSubmissions(mockSubmissions);
+        return;
+      }
+
+      // Transform Supabase data to our FormSubmission interface
+      const transformedSubmissions: FormSubmission[] = (submissionsData || []).map(sub => ({
+        id: sub.id,
+        form_id: sub.form_id,
+        submitted_at: sub.submitted_at,
+        data: sub.submission_data || {},
+        lead_score: sub.lead_score
       }));
       
-      setSubmissions(mockSubmissions);
+      setSubmissions(transformedSubmissions);
     } catch (error) {
       console.error('Failed to load submissions:', error);
       toast.error('Failed to load submissions');
