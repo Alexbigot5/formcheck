@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import apiClient from "@/lib/apiClient";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { 
   CheckCircle,
@@ -69,22 +70,12 @@ const SourcesWizardSimple = () => {
         setError(null);
 
         // Fetch dashboard overview which includes source data
-        const response = await fetch('/api/dashboard/overview', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await apiClient.get('/api/dashboard/overview');
+        const analyticsResponse = response.data;
         
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const analyticsResponse = await response.json();
-        
-        if (analyticsResponse.ok && analyticsResponse.data.sourceBreakdown) {
+        if (analyticsResponse && analyticsResponse.sourceBreakdown) {
           // Transform API data to component format
-          const sourceData: LeadSourceData[] = analyticsResponse.data.sourceBreakdown.map((source: any) => {
+          const sourceData: LeadSourceData[] = analyticsResponse.sourceBreakdown.map((source: any) => {
             const config = getSourceConfig(source.source);
             return {
               source: config.label,

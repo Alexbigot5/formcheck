@@ -18,7 +18,9 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/overview - Get dashboard overview metrics
    */
-  app.get('/api/dashboard/overview', async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/dashboard/overview', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply) => {
     // Validate query parameters
     const parsed = analyticsQuerySchema.safeParse(request.query);
     if (!parsed.success) {
@@ -91,7 +93,9 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/pipeline - Get lead pipeline data
    */
-  app.get('/api/dashboard/pipeline', async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/dashboard/pipeline', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = request.teamId!;
 
     try {
@@ -171,7 +175,9 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/performance - Get performance metrics
    */
-  app.get('/api/dashboard/performance', async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/dashboard/performance', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply) => {
     // Validate query parameters
     const parsed = analyticsQuerySchema.safeParse(request.query);
     if (!parsed.success) {
@@ -234,7 +240,9 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/integrations - Get integrations status
    */
-  app.get('/api/dashboard/integrations', async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/dashboard/integrations', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply) => {
     const teamId = request.teamId!;
 
     try {
@@ -319,7 +327,9 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   /**
    * GET /api/dashboard/recent-leads - Get recent leads
    */
-  app.get('/api/dashboard/recent-leads', async (request: AuthenticatedRequest, reply) => {
+  app.get('/api/dashboard/recent-leads', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply) => {
     // Validate query parameters
     const limitSchema = z.object({
       limit: z.coerce.number().min(1).max(50).default(10)
