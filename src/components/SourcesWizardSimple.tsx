@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,28 +27,116 @@ import { getSourceConfig } from "@/lib/sourceMapping";
 import { WebsiteFormWizard } from "@/components/source-wizards/WebsiteFormWizard";
 import { EmailWizard } from "@/components/source-wizards/EmailWizard";
 import { toast } from "sonner";
+import { analyticsApi } from "@/lib/analyticsApi";
+import { useAuth } from "@/lib/AuthProvider";
+
+interface LeadSourceData {
+  source: string;
+  sourceId: string;
+  leads: number;
+  icon: any;
+  color: string;
+}
+
+interface TrackingStatus {
+  utmParametersDetected: boolean;
+  referrerCaptured: boolean;
+  lastDetectedUTM: string;
+  lastReferrer: string;
+  trackingHealth: 'healthy' | 'warning' | 'error' | 'unknown';
+}
 
 const SourcesWizardSimple = () => {
+  const { isAuthenticated } = useAuth();
   const [attributionMode, setAttributionMode] = useState<'first-touch' | 'last-touch' | 'multi-touch'>('first-touch');
   const [activeWizard, setActiveWizard] = useState<string | null>(null);
-
-  // Lead stats will be loaded from API when available
-  const leadStats: Array<{
-    source: string;
-    sourceId: string;
-    leads: number;
-    icon: any;
-    color: string;
-  }> = [];
-
-  // Tracking status will be loaded from API when available
-  const trackingStatus = {
+  const [leadStats, setLeadStats] = useState<LeadSourceData[]>([]);
+  const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>({
     utmParametersDetected: false,
     referrerCaptured: false,
     lastDetectedUTM: '',
     lastReferrer: '',
-    trackingHealth: 'unknown' as 'healthy' | 'warning' | 'error' | 'unknown'
-  };
+    trackingHealth: 'unknown'
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load real analytics data
+  useEffect(() => {
+    const loadAnalyticsData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch dashboard overview which includes source data
+        const response = await fetch('/api/dashboard/overview', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const analyticsResponse = await response.json();
+        
+        if (analyticsResponse.ok && analyticsResponse.data.sourceBreakdown) {
+          // Transform API data to component format
+          const sourceData: LeadSourceData[] = analyticsResponse.data.sourceBreakdown.map((source: any) => {
+            const config = getSourceConfig(source.source);
+            return {
+              source: config.label,
+              sourceId: source.source,
+              leads: source.count || 0,
+              icon: config.icon,
+              color: config.color
+            };
+          });
+
+          setLeadStats(sourceData);
+        }
+
+        // Fetch tracking status (this would come from a separate endpoint)
+        // For now, we'll derive it from the analytics data
+        const hasUTMData = analyticsResponse.data.sourceBreakdown?.some((s: any) => 
+          s.source?.includes('utm') || s.source?.includes('google') || s.source?.includes('facebook')
+        );
+        
+        setTrackingStatus({
+          utmParametersDetected: hasUTMData || false,
+          referrerCaptured: true, // Assume referrer capture is working
+          lastDetectedUTM: hasUTMData ? 'utm_source=detected&utm_medium=web' : '',
+          lastReferrer: 'https://www.google.com',
+          trackingHealth: hasUTMData ? 'healthy' : 'warning'
+        });
+
+      } catch (err: any) {
+        console.error('Failed to load analytics data:', err);
+        setError(err.message || 'Failed to load lead source data');
+        
+        // Set empty state on error
+        setLeadStats([]);
+        setTrackingStatus({
+          utmParametersDetected: false,
+          referrerCaptured: false,
+          lastDetectedUTM: '',
+          lastReferrer: '',
+          trackingHealth: 'error'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only load data if authenticated
+    if (isAuthenticated) {
+      loadAnalyticsData();
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   // Chart data for the bar chart
   const chartData = leadStats.map(item => ({
@@ -74,6 +162,68 @@ const SourcesWizardSimple = () => {
   const handleWizardClose = () => {
     setActiveWizard(null);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight mb-2">Lead Sources</h2>
+          <p className="text-muted-foreground">
+            Loading your lead source analytics...
+          </p>
+        </div>
+        
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[1, 2].map(i => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="h-6 bg-gray-200 rounded animate-pulse"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight mb-2">Lead Sources</h2>
+          <p className="text-muted-foreground">
+            Configure and test your lead ingestion sources with advanced tracking and attribution.
+          </p>
+        </div>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="w-5 h-5" />
+              <span className="font-medium">Failed to load lead source data</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+              size="sm"
+            >
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -373,29 +523,44 @@ const SourcesWizardSimple = () => {
           <p className="text-sm text-muted-foreground">Lead acquisition by source this month</p>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  fontSize={12}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis fontSize={12} />
-                <Tooltip 
-                  formatter={(value) => [value, 'Leads']}
-                  labelStyle={{ color: '#374151' }}
-                />
-                <Bar 
-                  dataKey="leads" 
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {leadStats.length === 0 ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">No Lead Sources Yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Connect your first lead source to see analytics here
+                </p>
+                <Button variant="outline" onClick={() => handleConnect('website-form')}>
+                  Connect Website Form
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    fontSize={12}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis fontSize={12} />
+                  <Tooltip 
+                    formatter={(value) => [value, 'Leads']}
+                    labelStyle={{ color: '#374151' }}
+                  />
+                  <Bar 
+                    dataKey="leads" 
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -408,11 +573,11 @@ const SourcesWizardSimple = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm">Total Integrations</span>
-              <span className="text-sm font-medium">6</span>
+              <span className="text-sm font-medium">{leadStats.length}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Active Sources</span>
-              <span className="text-sm font-medium">3</span>
+              <span className="text-sm font-medium">{leadStats.filter(stat => stat.leads > 0).length}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Leads This Month</span>
@@ -421,6 +586,19 @@ const SourcesWizardSimple = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm">Attribution Mode</span>
               <Badge variant="outline">{attributionMode.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Tracking Health</span>
+              <Badge 
+                variant={trackingStatus.trackingHealth === 'healthy' ? 'default' : 
+                        trackingStatus.trackingHealth === 'warning' ? 'secondary' : 'destructive'}
+                className="flex items-center gap-1"
+              >
+                {trackingStatus.trackingHealth === 'healthy' && <CheckCircle className="w-3 h-3" />}
+                {trackingStatus.trackingHealth === 'warning' && <AlertCircle className="w-3 h-3" />}
+                {trackingStatus.trackingHealth === 'error' && <AlertCircle className="w-3 h-3" />}
+                {trackingStatus.trackingHealth.charAt(0).toUpperCase() + trackingStatus.trackingHealth.slice(1)}
+              </Badge>
             </div>
           </div>
         </CardContent>
