@@ -86,8 +86,10 @@ export interface AuditLog {
 
 const CrmHub = () => {
   const [activeTab, setActiveTab] = useState("contacts");
+  const [loading, setLoading] = useState(false);
 
-  // Mock data
+  // TODO: Replace with real API calls to CRM backend
+  // Mock data (to be replaced with real API integration)
   const [contacts] = useState<Contact[]>([
     {
       id: "1",
@@ -245,6 +247,11 @@ const CrmHub = () => {
           <p className="text-muted-foreground mt-1">
             Unified customer relationship management platform
           </p>
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              📝 Note: Currently displaying demo data. Connect your CRM integration to see real data.
+            </p>
+          </div>
         </header>
 
         <CrmTabs activeTab={activeTab} onTabChange={setActiveTab} />

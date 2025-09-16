@@ -94,12 +94,13 @@ const ViewForms: React.FC = () => {
         return;
       }
 
-      // Mock some additional data for demonstration
+      // TODO: Replace with real submission data from backend
+      // For now, using mock data for submissions_count and status
       const formsWithStats = (formsData || []).map(form => ({
         ...form,
-        submissions_count: Math.floor(Math.random() * 50),
+        submissions_count: Math.floor(Math.random() * 50), // TODO: Get from submissions table
         last_submission: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString() : null,
-        status: Math.random() > 0.8 ? 'draft' : Math.random() > 0.9 ? 'archived' : 'active'
+        status: 'active' // TODO: Add status field to forms table
       })) as Form[];
 
       setForms(formsWithStats);
@@ -112,21 +113,34 @@ const ViewForms: React.FC = () => {
   };
 
   const loadSubmissions = async (formId: string) => {
-    // Mock submissions data since we don't have a submissions table yet
-    const mockSubmissions: FormSubmission[] = Array.from({ length: 5 }, (_, i) => ({
-      id: `sub-${i}`,
-      form_id: formId,
-      submitted_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-      data: {
-        name: `Lead ${i + 1}`,
-        email: `lead${i + 1}@example.com`,
-        company: `Company ${i + 1}`,
-        budget: Math.floor(Math.random() * 100000) + 5000
-      },
-      lead_score: Math.floor(Math.random() * 100)
-    }));
-    
-    setSubmissions(mockSubmissions);
+    try {
+      // TODO: Implement real submissions API call
+      // const { data: submissionsData, error } = await supabase
+      //   .from("form_submissions")
+      //   .select("*")
+      //   .eq("form_id", formId)
+      //   .order("submitted_at", { ascending: false })
+      //   .limit(10);
+
+      // For now, using mock data until submissions table is created
+      const mockSubmissions: FormSubmission[] = Array.from({ length: 5 }, (_, i) => ({
+        id: `sub-${i}`,
+        form_id: formId,
+        submitted_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+        data: {
+          name: `Lead ${i + 1}`,
+          email: `lead${i + 1}@example.com`,
+          company: `Company ${i + 1}`,
+          budget: Math.floor(Math.random() * 100000) + 5000
+        },
+        lead_score: Math.floor(Math.random() * 100)
+      }));
+      
+      setSubmissions(mockSubmissions);
+    } catch (error) {
+      console.error('Failed to load submissions:', error);
+      toast.error('Failed to load submissions');
+    }
   };
 
   const deleteForm = async (formId: string) => {

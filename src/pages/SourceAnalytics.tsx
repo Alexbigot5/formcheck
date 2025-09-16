@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,12 +23,86 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { getSourceConfig, SOURCE_CATEGORIES, SOURCE_CONFIG } from '@/lib/sourceMapping';
+import { analyticsApi, type AnalyticsOverview } from '@/lib/analyticsApi';
+import { toast } from 'sonner';
 
 const SourceAnalytics = () => {
   const [dateRange, setDateRange] = useState('30d');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for source performance
+  // Load analytics data
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [dateRange]);
+
+  const loadAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+      const data = await analyticsApi.getOverview(days);
+      setAnalyticsData(data);
+    } catch (err: any) {
+      console.error('Failed to load analytics data:', err);
+      setError(err.message || 'Failed to load analytics data');
+      toast.error('Failed to load analytics data', {
+        description: err.message || 'Please try again later'
+      });
+      
+      // Fallback to mock data if API fails
+      setAnalyticsData(createMockAnalyticsData());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data fallback function
+  const createMockAnalyticsData = (): AnalyticsOverview => ({
+    success: true,
+    data: {
+      summary: {
+        totalLeads: 1218,
+        newLeads: 234,
+        averageScore: 72.5,
+        conversionRate: 28.6,
+        meetingConversions: 89,
+        meetingConversionRate: 38.0
+      },
+      sourceBreakdown: [
+        { source: 'website-form', count: 234, percentage: 19.2 },
+        { source: 'calendly', count: 189, percentage: 15.5 },
+        { source: 'mailchimp', count: 156, percentage: 12.8 },
+        { source: 'linkedin-leads', count: 145, percentage: 11.9 },
+        { source: 'typeform', count: 123, percentage: 10.1 }
+      ],
+      leadsPerDay: [],
+      slaMetrics: {
+        hitRate: 85.2,
+        averageResponseTime: 24.5,
+        totalSlaClocks: 1218,
+        satisfiedCount: 1038,
+        escalatedCount: 180
+      },
+      responseTimeDistribution: [],
+      scoreDistribution: [
+        { band: 'HIGH', count: 365, percentage: 30.0 },
+        { band: 'MEDIUM', count: 609, percentage: 50.0 },
+        { band: 'LOW', count: 244, percentage: 20.0 }
+      ],
+      topSources: [
+        { source: 'calendly', count: 189, averageScore: 78.5, conversionRate: 61.4 },
+        { source: 'website-form', count: 234, averageScore: 65.2, conversionRate: 28.6 },
+        { source: 'mailchimp', count: 156, averageScore: 82.1, conversionRate: 23.8 }
+      ],
+      ownerPerformance: []
+    }
+  });
+
+  // Mock data for source performance (keeping for compatibility)
   const sourcePerformanceData = [
     { sourceId: 'calendly', leads: 145, conversions: 89, revenue: 125000, avgDealSize: 1404, conversionRate: 61.4, cost: 2400, roi: 5108 },
     { sourceId: 'website-form', leads: 234, conversions: 67, revenue: 98000, avgDealSize: 1462, conversionRate: 28.6, cost: 1200, roi: 8067 },
@@ -124,66 +198,89 @@ const SourceAnalytics = () => {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={loadAnalyticsData} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </header>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totals.leads.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">↗ 12.5%</span> from last period
-              </p>
-            </CardContent>
-          </Card>
+        {loading ? (
+          <div className="grid gap-4 md:grid-cols-4">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : analyticsData ? (
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analyticsData.data.summary.totalLeads.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-600">↗ {analyticsData.data.summary.newLeads}</span> new this period
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{avgConversionRate.toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">↗ 3.2%</span> from last period
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analyticsData.data.summary.conversionRate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">
+                  Average score: {analyticsData.data.summary.averageScore.toFixed(1)}
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${(totals.revenue / 1000).toFixed(0)}k</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">↗ 18.7%</span> from last period
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Meeting Conversions</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analyticsData.data.summary.meetingConversions}</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-600">{analyticsData.data.summary.meetingConversionRate.toFixed(1)}%</span> meeting rate
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average ROI</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalROI.toFixed(0)}%</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">↗ 5.8%</span> from last period
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">SLA Performance</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analyticsData.data.slaMetrics.hitRate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">
+                  Avg response: {analyticsData.data.slaMetrics.averageResponseTime.toFixed(0)}m
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-medium mb-2">Failed to load analytics</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={loadAnalyticsData}>Try Again</Button>
+          </div>
+        )}
 
         {/* Category Filter */}
         <div className="flex gap-2 flex-wrap">

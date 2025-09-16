@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthProvider";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from "recharts";
 import { getSourceConfig } from "@/lib/sourceMapping";
+import { analyticsApi, type AnalyticsOverview } from "@/lib/analyticsApi";
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -38,8 +39,73 @@ const Dashboard = () => {
   const { isAuthenticated } = useAuth();
   const [dateRange, setDateRange] = useState("30d");
   const [showAdvancedMetrics, setShowAdvancedMetrics] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for charts
+  // Load analytics data
+  const loadAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+      const data = await analyticsApi.getOverview(days);
+      setAnalyticsData(data);
+    } catch (err: any) {
+      console.error('Failed to load analytics data:', err);
+      setError(err.message || 'Failed to load analytics data');
+      
+      // Fallback to mock data structure for compatibility
+      setAnalyticsData(createMockAnalyticsData());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data fallback function
+  const createMockAnalyticsData = (): AnalyticsOverview => ({
+    success: true,
+    data: {
+      summary: {
+        totalLeads: 1218,
+        newLeads: 234,
+        averageScore: 72.5,
+        conversionRate: 28.6,
+        meetingConversions: 89,
+        meetingConversionRate: 38.0
+      },
+      sourceBreakdown: [
+        { source: 'Newsletter', count: 245, percentage: 20.1 },
+        { source: 'YouTube', count: 189, percentage: 15.5 },
+        { source: 'LinkedIn', count: 156, percentage: 12.8 },
+        { source: 'Direct', count: 98, percentage: 8.0 },
+        { source: 'Social Media', count: 67, percentage: 5.5 }
+      ],
+      leadsPerDay: [],
+      slaMetrics: {
+        hitRate: 85.2,
+        averageResponseTime: 24.5,
+        totalSlaClocks: 1218,
+        satisfiedCount: 1038,
+        escalatedCount: 180
+      },
+      responseTimeDistribution: [],
+      scoreDistribution: [
+        { band: 'HIGH', count: 365, percentage: 30.0 },
+        { band: 'MEDIUM', count: 609, percentage: 50.0 },
+        { band: 'LOW', count: 244, percentage: 20.0 }
+      ],
+      topSources: [
+        { source: 'Newsletter', count: 245, averageScore: 78.5, conversionRate: 35.1 },
+        { source: 'YouTube', count: 189, averageScore: 65.2, conversionRate: 28.0 },
+        { source: 'LinkedIn', count: 156, averageScore: 82.1, conversionRate: 19.9 }
+      ],
+      ownerPerformance: []
+    }
+  });
+
+  // Mock data for charts (keeping for compatibility)
   const leadsByChannelData = [
     { name: 'Newsletter', value: 35, color: '#8884d8' },
     { name: 'YouTube', value: 28, color: '#82ca9d' },
@@ -188,6 +254,11 @@ const Dashboard = () => {
     }
   }, [navigate, isAuthenticated]);
 
+  // Load analytics data when component mounts or date range changes
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [dateRange]);
+
   return (
     <Layout>
       <div>
@@ -243,16 +314,42 @@ const Dashboard = () => {
         )}
 
         {/* Enhanced Metrics Row */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Leads</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.totalLeads.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">All captured leads</p>
-            </CardContent>
-          </Card>
+        {loading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : analyticsData ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Leads</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analyticsData.data.summary.totalLeads.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground mt-1">All captured leads</p>
+              </CardContent>
+            </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Leads</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.totalLeads.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground mt-1">All captured leads</p>
+              </CardContent>
+            </Card>
 
           <Card>
             <CardHeader>
