@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { authenticate } from '../../middleware/auth';
+import { authenticateSupabase } from '../../middleware/supabase-auth';
 import { AuthenticatedRequest } from '../../types/auth';
 
 // Validation schemas
@@ -16,7 +16,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
   /**
    * GET /analytics/overview - Comprehensive analytics overview
    */
-  app.get('/analytics/overview', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
+  app.get('/analytics/overview', { preHandler: [authenticateSupabase] }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const { days, timezone } = request.query as z.infer<typeof overviewQuerySchema>;
     const teamId = (request as any).teamId;
 
