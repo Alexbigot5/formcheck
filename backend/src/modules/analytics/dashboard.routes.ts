@@ -325,6 +325,34 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
   });
 
   /**
+   * GET /api/dashboard/get-user-analytics - Temporary redirect to overview
+   */
+  app.get('/api/dashboard/get-user-analytics', {
+    preHandler: [authenticateSupabase]
+  }, async (request: AuthenticatedRequest, reply) => {
+    // Redirect to the overview endpoint for compatibility
+    try {
+      const teamId = request.teamId!;
+      
+      // Get basic analytics data
+      const totalLeads = await app.prisma.lead.count({
+        where: { teamId }
+      });
+
+      return reply.send({
+        ok: true,
+        data: {
+          totalLeads,
+          message: 'Use /api/dashboard/overview for full analytics'
+        }
+      });
+    } catch (error) {
+      app.log.error('Failed to get user analytics:', error);
+      return reply.code(500).send({ ok: false, error: 'Failed to get user analytics' });
+    }
+  });
+
+  /**
    * GET /api/dashboard/recent-leads - Get recent leads
    */
   app.get('/api/dashboard/recent-leads', {
