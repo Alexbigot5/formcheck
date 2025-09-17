@@ -235,19 +235,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     try {
       if (USE_MOCK_AUTH) {
-        // Create a local mock session for development without backend
+        // Create pilot user with specific credentials
+        const isPilotUser = credentials.email.toLowerCase() === 'pilot@smartforms.ai';
+        
         const mockUser: User = {
-          id: 'dev-user',
+          id: isPilotUser ? 'pilot-user-2024' : 'dev-user',
           email: credentials.email,
           role: 'admin' as UserRole,
-          name: 'Developer',
+          name: isPilotUser ? 'Pilot User' : 'Developer',
         } as unknown as User;
-        setAuthToken('dev-token');
-        localStorage.setItem(STORAGE_KEYS.TEAM_ID, 'dev-team');
+        
+        const teamId = isPilotUser ? 'pilot-team-2024' : 'dev-team';
+        const token = isPilotUser ? 'pilot-access-token-2024' : 'dev-token';
+        
+        setAuthToken(token);
+        localStorage.setItem(STORAGE_KEYS.TEAM_ID, teamId);
         localStorage.setItem(STORAGE_KEYS.USER_ROLE, mockUser.role as unknown as string);
         localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(mockUser));
         setUser(mockUser);
-        setTeamId('dev-team');
+        setTeamId(teamId);
         setUserRole(mockUser.role);
         return;
       }

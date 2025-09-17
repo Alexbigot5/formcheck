@@ -13,6 +13,7 @@
     "prisma:migrate": "prisma migrate dev",
     "seed": "tsx src/scripts/seed.ts",
     "seed:clean": "tsx src/scripts/seed.ts --clean",
+    "seed:pilot": "tsx src/scripts/seed-pilot-data.ts",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
