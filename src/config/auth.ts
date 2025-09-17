@@ -1,7 +1,7 @@
 // Auth configuration
 export const authConfig = {
   // Set this to false to use real Supabase auth, true for mock auth
-  useMockAuth: import.meta.env.VITE_MOCK_AUTH === 'true',
+  useMockAuth: true, // Temporarily force mock auth
   
   // Supabase configuration
   supabase: {
