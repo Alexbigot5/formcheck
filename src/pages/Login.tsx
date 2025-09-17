@@ -52,8 +52,12 @@ const Login = () => {
   // Separate effect for authentication redirect to prevent loops
   useEffect(() => {
     // Only redirect if authenticated AND not currently loading
+    // Add a small delay to prevent flash
     if (isAuthenticated && !isLoading) {
-      navigate("/dashboard", { replace: true });
+      const timer = setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, isLoading, navigate]);
 

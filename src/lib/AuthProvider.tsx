@@ -46,6 +46,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
 
@@ -170,6 +171,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setTeamId(null);
       } finally {
         setIsLoading(false);
+        setInitialCheckDone(true);
       }
     };
 
@@ -362,8 +364,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     teamId,
     userRole,
-    isLoading: isLoading || loginMutation.isPending || checkAuthMutation.isPending,
-    isAuthenticated: !!user && !!teamId,
+    isLoading: isLoading || !initialCheckDone || loginMutation.isPending || checkAuthMutation.isPending,
+    isAuthenticated: !!user && !!teamId && initialCheckDone,
     
     // Actions
     login,
